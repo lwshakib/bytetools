@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bytetools
 
-## Getting Started
+Welcome to **Bytetools**! A modern web application built with [Next.js](https://nextjs.org), designed to provide essential utilities for developers and regular users alike.
 
-First, run the development server:
+## 🚀 Getting Started
+
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+Ensure you have the following installed on your machine:
+
+- [Node.js](https://nodejs.org/) (latest LTS version recommended)
+- [Bun](https://bun.sh/) (as the package manager and runtime)
+- [PostgreSQL](https://www.postgresql.org/) (if running a local DB instance, though this project is configured for NeonDB)
+
+### Installation
+
+1.  **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/lwshakib/bytetools.git
+    cd bytetools
+    ```
+
+2.  **Install dependencies:**
+
+    ```bash
+    bun install
+    ```
+
+3.  **Environment Setup:**
+
+    Copy the `.env.example` file to `.env` and fill in your credentials.
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    > **Note:** You will need a Database URL (PostgreSQL) and OAuth credentials for Google Authentication.
+
+4.  **Database Setup:**
+
+    Initialize the database using Prisma.
+
+    ```bash
+    # Generate Prisma Client
+    bun run db:generate
+
+    # Run migrations
+    bun run db:migrate
+    ```
+
+### Running the Application
+
+Start the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
 bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework:** [Next.js 16](https://nextjs.org/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Database:** [PostgreSQL](https://www.postgresql.org/) (via [Neon](https://neon.tech/))
+- **ORM:** [Prisma](https://www.prisma.io/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Components:** [shadcn/ui](https://ui.shadcn.com/)
+- **Authentication:** [Better Auth](https://better-auth.com/)
+- **Package Manager:** [Bun](https://bun.sh/)
 
-## Learn More
+## 📊 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+Here is a high-level overview of the project structure using Mermaid:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```mermaid
+graph TD
+    A[Root] --> B[app]
+    A --> C[components]
+    A --> D[lib]
+    A --> E[prisma]
+    A --> F[public]
+    
+    B --> B1[page.tsx - Home]
+    B --> B2[layout.tsx - Root Layout]
+    B --> B3[api - API Routes]
+    
+    C --> C1[ui - Reusable UI Components]
+    C --> C2[Other Components]
+    
+    D --> D1[utils.ts - Utility Functions]
+    D --> D2[prisma.ts - DB Client]
+    
+    E --> E1[schema.prisma - DB Schema]
+    
+    style A fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style B fill:#e1f5fe,stroke:#01579b
+    style C fill:#fff9c4,stroke:#fbc02d
+    style D fill:#e0f2f1,stroke:#00695c
+    style E fill:#f3e5f5,stroke:#7b1fa2
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🤝 Contributing
 
-## Deploy on Vercel
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Please adhere to this project's [Code of Conduct](CODE_OF_CONDUCT.md).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📄 License
+
+This project is open-source. Please see the [LICENSE](LICENSE) file for details.
+
+## 👤 Author
+
+**lwshakib**
+
+- GitHub: [@lwshakib](https://github.com/lwshakib)
+
+---
+*Built with ❤️ by the open-source community.*
