@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ByteTools - The Ultimate Speed Typing Game",
-  description: "Test and improve your typing speed and accuracy with interactive charts and progress tracking.",
+  title: "ByteTools - Essential Developer Utilities & Tools",
+  description: "A comprehensive suite of developer tools including URL shortening, QR code generation, and more to streamline your workflow.",
    icons: {
     icon: [
       {
