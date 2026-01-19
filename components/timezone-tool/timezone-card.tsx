@@ -44,7 +44,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     return toZonedTime(liveNow, timezone);
   }, [liveNow, timezone]);
   
-  const canDelete = selectedTimezones.length > 1;
+  const canDelete = selectedTimezones.length > 1 && id !== 'local';
   const isSelected = selectedId === id;
   
   useEffect(() => {
@@ -151,6 +151,11 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
                 <h3 className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest truncate">
                   {city}
                 </h3>
+                {id === 'local' && (
+                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[8px] font-black text-blue-500 uppercase tracking-widest">
+                        Home
+                    </span>
+                )}
                 {country && (
                     <span className="text-muted-foreground/30 text-[10px]">•</span>
                 )}

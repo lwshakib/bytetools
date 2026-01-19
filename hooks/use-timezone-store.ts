@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { cities } from '@/lib/timezone-data';
 
 export interface TimezoneItem {
@@ -29,7 +28,7 @@ const getLocalTimezoneItem = (): TimezoneItem => {
   const match = cities.find(c => c.timezone === localTz);
   
   // Extract city from timezone if match not found (e.g. "Asia/Dhaka" -> "Dhaka")
-  const cityFromTz = localTz.split('/').pop()?.replace(/_/g, ' ') || 'Local Time';
+  const cityFromTz = localTz.split('/').pop()?.replace(/_/g, ' ') || 'Unknown Location';
 
   return {
     id: 'local',
@@ -39,35 +38,27 @@ const getLocalTimezoneItem = (): TimezoneItem => {
   };
 };
 
-export const useTimezoneStore = create<TimezoneStore>()(
-  persist(
-    (set) => ({
-      selectedTimezones: [getLocalTimezoneItem()],
-      baseTime: Date.now(),
-      timeOffset: 0,
-      selectedId: 'local',
-      addTimezone: (item) => set((state) => ({
-        selectedTimezones: [...state.selectedTimezones, item],
-        selectedId: item.id
-      })),
-      updateTimezone: (id, newItem) => set((state) => ({
-        selectedTimezones: state.selectedTimezones.map((tz) => 
-          tz.id === id ? { ...tz, ...newItem } : tz
-        )
-      })),
-      removeTimezone: (id) => set((state) => ({
-        selectedTimezones: state.selectedTimezones.filter((t) => t.id !== id),
-        selectedId: state.selectedId === id ? (state.selectedTimezones.length > 1 ? state.selectedTimezones[0].id : null) : state.selectedId
-      })),
-      setBaseTime: (time) => set({ baseTime: time }),
-      setTimeOffset: (offset) => set({ timeOffset: offset }),
-      resetTime: () => set({ baseTime: Date.now(), timeOffset: 0 }),
-      setSelectedId: (id) => set({ selectedId: id }),
-      setAllTimezones: (items) => set({ selectedTimezones: items }),
-    }),
-    {
-      name: 'timezone-storage',
-      partialize: (state) => ({ selectedTimezones: state.selectedTimezones }),
-    }
-  )
-);
+export const useTimezoneStore = create<TimezoneStore>()((set) => ({
+  selectedTimezones: [getLocalTimezoneItem()],
+  baseTime: Date.now(),
+  timeOffset: 0,
+  selectedId: 'local',
+  addTimezone: (item) => set((state) => ({
+    selectedTimezones: [...state.selectedTimezones, item],
+    selectedId: item.id
+  })),
+  updateTimezone: (id, newItem) => set((state) => ({
+    selectedTimezones: state.selectedTimezones.map((tz) => 
+      tz.id === id ? { ...tz, ...newItem } : tz
+    )
+  })),
+  removeTimezone: (id) => set((state) => ({
+    selectedTimezones: state.selectedTimezones.filter((t) => t.id !== id),
+    selectedId: state.selectedId === id ? (state.selectedTimezones.length > 1 ? state.selectedTimezones[0].id : null) : state.selectedId
+  })),
+  setBaseTime: (time) => set({ baseTime: time }),
+  setTimeOffset: (offset) => set({ timeOffset: offset }),
+  resetTime: () => set({ baseTime: Date.now(), timeOffset: 0 }),
+  setSelectedId: (id) => set({ selectedId: id }),
+  setAllTimezones: (items) => set({ selectedTimezones: items }),
+}));
