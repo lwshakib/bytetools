@@ -13,18 +13,21 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Edit2,
   Repeat,
   Inbox,
-  Flag
+  ListTodo,
+  CalendarCheck,
+  Package
 } from 'lucide-react';
-import { format, addDays, startOfToday, isSameDay, subDays, isBefore } from 'date-fns';
+import { format, addDays, startOfToday, isSameDay, subDays, isBefore, getDay, getDate, differenceInWeeks } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { useSession } from '@/lib/auth-client';
 
 interface Task {
   id: string;
@@ -32,13 +35,19 @@ interface Task {
   completed: boolean;
   date: string; // yyyy-MM-dd
   category: 'daily' | 'dump';
+  routineId?: string | null;
 }
 
 interface Routine {
   id: string;
   text: string;
   frequency: 'daily' | 'weekly' | 'bi-weekly' | 'monthly';
+  selectedDays: number[]; // 0-6
+  selectedDate: number | null; // 1-31
+  createdAt?: string; 
 }
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function DailyPlannerPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -47,25 +56,44 @@ export default function DailyPlannerPage() {
   const [baseDate, setBaseDate] = useState<Date>(startOfToday());
   const [showCompletedDump, setShowCompletedDump] = useState(false);
 
-  // Persistence
+  const { data: session } = useSession();
+
+  // Persistence (Local Storage)
   useEffect(() => {
-    const savedTasks = localStorage.getItem('bt-planner-tasks-v2');
-    const savedRoutines = localStorage.getItem('bt-planner-routines');
-    if (savedTasks) {
-      try { setTasks(JSON.parse(savedTasks)); } catch (e) { console.error(e); }
-    }
-    if (savedRoutines) {
-      try { setRoutines(JSON.parse(savedRoutines)); } catch (e) { console.error(e); }
-    }
+    const savedTasks = localStorage.getItem('bt-planner-tasks-v3');
+    const savedRoutines = localStorage.getItem('bt-planner-routines-v2');
+    if (savedTasks) { try { setTasks(JSON.parse(savedTasks)); } catch (e) {} }
+    if (savedRoutines) { try { setRoutines(JSON.parse(savedRoutines)); } catch (e) {} }
   }, []);
 
+  // Sync with DB
   useEffect(() => {
-    localStorage.setItem('bt-planner-tasks-v2', JSON.stringify(tasks));
-  }, [tasks]);
+    if (session?.user) {
+      fetch('/api/sync/tasks').then(res => res.json()).then(data => { if (data?.length) setTasks(data); });
+      fetch('/api/sync/routines').then(res => res.json()).then(data => { if (data?.length) setRoutines(data); });
+    }
+  }, [session?.user]);
+
+  // Push to DB on changes
+  useEffect(() => {
+    localStorage.setItem('bt-planner-tasks-v3', JSON.stringify(tasks));
+    if (session?.user) {
+        const timeout = setTimeout(() => {
+            fetch('/api/sync/tasks', { method: 'POST', body: JSON.stringify(tasks), headers: { 'Content-Type': 'application/json' } });
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }
+  }, [tasks, session?.user]);
 
   useEffect(() => {
-    localStorage.setItem('bt-planner-routines', JSON.stringify(routines));
-  }, [routines]);
+    localStorage.setItem('bt-planner-routines-v2', JSON.stringify(routines));
+    if (session?.user) {
+        const timeout = setTimeout(() => {
+            fetch('/api/sync/routines', { method: 'POST', body: JSON.stringify(routines), headers: { 'Content-Type': 'application/json' } });
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }
+  }, [routines, session?.user]);
 
   // Responsive column count
   const [viewportWidth, setViewportWidth] = useState(1200);
@@ -85,165 +113,116 @@ export default function DailyPlannerPage() {
 
   // Column dates
   const currentColumns = useMemo(() => {
-    if (columnCount === 4) {
-      return [subDays(baseDate, 1), baseDate, addDays(baseDate, 1), addDays(baseDate, 2)];
-    }
-    if (columnCount === 3) {
-      return [subDays(baseDate, 1), baseDate, addDays(baseDate, 1)];
-    }
-    if (columnCount === 2) {
-      return [baseDate, addDays(baseDate, 1)];
-    }
+    if (columnCount === 4) return [subDays(baseDate, 1), baseDate, addDays(baseDate, 1), addDays(baseDate, 2)];
+    if (columnCount === 3) return [subDays(baseDate, 1), baseDate, addDays(baseDate, 1)];
+    if (columnCount === 2) return [baseDate, addDays(baseDate, 1)];
     return [baseDate];
   }, [baseDate, columnCount]);
 
-  const addTask = (text: string, dateKey: string, category: 'daily' | 'dump' = 'daily') => {
-    if (!text.trim()) return;
-    const task: Task = {
-      id: Math.random().toString(36).substring(2, 9),
-      text: text.trim(),
-      completed: false,
-      date: dateKey,
-      category,
-    };
-    setTasks([...tasks, task]);
+  const addTask = (text: string, dateKey: string, category: Task['category'] = 'daily', routineId: string | null = null) => {
+    const newTask: Task = { id: Math.random().toString(36).substring(2, 9), text, completed: false, date: dateKey, category, routineId };
+    setTasks(prev => [...prev, newTask]);
+    if (!routineId) toast.success('Objective recorded');
   };
 
-  const toggleTask = (id: string) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  const toggleTask = (id: string, routineData?: { text: string, dateKey: string, routineId: string }) => {
+    if (id.startsWith('virtual-') && routineData) {
+        // Realize virtual routine task
+        const newTask: Task = { 
+            id: Math.random().toString(36).substring(2, 9), 
+            text: routineData.text, 
+            completed: true, 
+            date: routineData.dateKey, 
+            category: 'daily', 
+            routineId: routineData.routineId 
+        };
+        setTasks(prev => [...prev, newTask]);
+        return;
+    }
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
 
   const deleteTask = (id: string) => {
-    setTasks(tasks.filter(t => t.id !== id));
+    setTasks(prev => prev.filter(t => t.id !== id));
+    toast.info('Objective purged');
   };
 
-  // Pending tasks (overdue from past days)
   const getPendingTasks = (currentDateKey: string) => {
-    return tasks.filter(t => 
-      t.category === 'daily' && 
-      !t.completed && 
-      isBefore(new Date(t.date), new Date(currentDateKey)) &&
-      t.date !== currentDateKey
-    );
+    return tasks.filter(t => t.category === 'daily' && !t.completed && isBefore(new Date(t.date), new Date(currentDateKey)) && t.date !== currentDateKey);
   };
 
-  // Routines
-  const addRoutine = (text: string, frequency: Routine['frequency']) => {
-    if (!text.trim()) return;
-    const routine: Routine = {
-      id: Math.random().toString(36).substring(2, 9),
-      text: text.trim(),
-      frequency,
+  const addRoutine = (text: string, frequency: Routine['frequency'], selectedDays: number[], selectedDate: number | null) => {
+    const newRoutine: Routine = { 
+        id: Math.random().toString(36).substring(2, 9), 
+        text, 
+        frequency, 
+        selectedDays, 
+        selectedDate,
+        createdAt: new Date().toISOString()
     };
-    setRoutines([...routines, routine]);
-    toast.success("Routine created");
+    setRoutines([...routines, newRoutine]);
+    toast.success('Routine established');
   };
 
   const deleteRoutine = (id: string) => {
-    setRoutines(routines.filter(r => r.id !== id));
+    setRoutines(prev => prev.filter(r => r.id !== id));
+    toast.info('Routine terminated');
   };
-
-  // Task Dump
-  const dumpTasks = tasks.filter(t => t.category === 'dump');
-  const activeDumpTasks = dumpTasks.filter(t => !t.completed);
-  const completedDumpTasks = dumpTasks.filter(t => t.completed);
 
   return (
     <div className="flex flex-1 flex-col h-full bg-background overflow-hidden">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
         {/* Top Bar */}
-        <div className="flex items-center justify-between p-3 px-4 border-b border-border/50 bg-background shrink-0">
-          <TabsList className="bg-transparent p-0 h-auto gap-2">
-            <TabsTrigger 
-              value="daily" 
-              className={cn(
-                "px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest border transition-all",
-                activeTab === 'daily' 
-                  ? "bg-amber-500 text-black border-amber-500 shadow-lg shadow-amber-500/20" 
-                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50"
-              )}
-            >
-              <CalendarIcon className="w-3.5 h-3.5 mr-2" />
-              Daily Planner
-            </TabsTrigger>
-            <TabsTrigger 
-              value="routine" 
-              className={cn(
-                "px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest border transition-all",
-                activeTab === 'routine' 
-                  ? "bg-amber-500 text-black border-amber-500 shadow-lg shadow-amber-500/20" 
-                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50"
-              )}
-            >
-              <Repeat className="w-3.5 h-3.5 mr-2" />
-              Routine
-            </TabsTrigger>
-            <TabsTrigger 
-              value="dump" 
-              className={cn(
-                "px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest border transition-all",
-                activeTab === 'dump' 
-                  ? "bg-amber-500 text-black border-amber-500 shadow-lg shadow-amber-500/20" 
-                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50"
-              )}
-            >
-              <Inbox className="w-3.5 h-3.5 mr-2" />
-              Task Dump
-            </TabsTrigger>
-          </TabsList>
+        <div className="flex items-center justify-between p-3 px-6 border-b border-border/50 bg-background/80 backdrop-blur-md shrink-0 z-20">
+          <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 mr-4">
+                  <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                      <CalendarCheck className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <h1 className="text-sm font-black uppercase tracking-widest hidden md:block">Tactical Planner</h1>
+              </div>
+              <TabsList className="bg-muted/30 p-1 h-10 gap-1 rounded-xl">
+                <TabsTrigger value="daily" className="px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all data-[state=active]:bg-emerald-500 data-[state=active]:text-black">
+                  Planner
+                </TabsTrigger>
+                <TabsTrigger value="routine" className="px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all data-[state=active]:bg-emerald-500 data-[state=active]:text-black">
+                  Routines
+                </TabsTrigger>
+                <TabsTrigger value="dump" className="px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all data-[state=active]:bg-emerald-500 data-[state=active]:text-black">
+                  Dump
+                </TabsTrigger>
+              </TabsList>
+          </div>
 
           {activeTab === 'daily' && (
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-8 px-3 text-xs font-bold uppercase tracking-widest rounded-lg border-border bg-muted/50 hover:bg-muted"
-                onClick={() => setBaseDate(startOfToday())}
-              >
-                Today
-              </Button>
+              <Button variant="ghost" className="h-9 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-muted" onClick={() => setBaseDate(startOfToday())}>Today</Button>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-border bg-muted/50 hover:bg-muted">
-                    <CalendarIcon className="w-4 h-4" />
-                  </Button>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl border border-border/50 hover:bg-muted"><CalendarIcon className="w-4 h-4" /></Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 rounded-xl border-border shadow-2xl" align="end">
+                <PopoverContent className="w-auto p-0 rounded-2xl border-border shadow-2xl" align="end">
                   <Calendar mode="single" selected={baseDate} onSelect={(d) => d && setBaseDate(d)} initialFocus />
                 </PopoverContent>
               </Popover>
-              <div className="flex items-center border border-border rounded-lg overflow-hidden bg-muted/50">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 rounded-none hover:bg-muted border-r border-border"
-                  onClick={() => setBaseDate(subDays(baseDate, 1))}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-8 w-8 rounded-none hover:bg-muted"
-                  onClick={() => setBaseDate(addDays(baseDate, 1))}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+              <div className="flex items-center bg-muted/30 rounded-xl overflow-hidden border border-border/50">
+                <Button variant="ghost" size="icon" className="h-9 w-9 border-r border-border/50 rounded-none" onClick={() => setBaseDate(subDays(baseDate, 1))}><ChevronLeft className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-none" onClick={() => setBaseDate(addDays(baseDate, 1))}><ChevronRight className="w-4 h-4" /></Button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-auto">
-          {/* Daily Planner Tab */}
-          <TabsContent value="daily" className="m-0 h-full p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 h-full">
+        {/* Content Area */}
+        <div className="flex-1 overflow-hidden relative">
+          <TabsContent value="daily" className="m-0 h-full">
+            <div className="flex h-full p-6 gap-6 overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {currentColumns.map((date) => (
                 <DayColumn 
                   key={format(date, 'yyyy-MM-dd')}
                   date={date}
-                  tasks={tasks.filter(t => t.date === format(date, 'yyyy-MM-dd') && t.category === 'daily')}
+                  tasks={tasks}
+                  routines={routines}
                   pendingTasks={getPendingTasks(format(date, 'yyyy-MM-dd'))}
                   onAddTask={(text) => addTask(text, format(date, 'yyyy-MM-dd'), 'daily')}
                   onToggleTask={toggleTask}
@@ -253,23 +232,17 @@ export default function DailyPlannerPage() {
             </div>
           </TabsContent>
 
-          {/* Routine Tab */}
-          <TabsContent value="routine" className="m-0 h-full">
-            <RoutineTab 
-              routines={routines}
-              onAddRoutine={addRoutine}
-              onDeleteRoutine={deleteRoutine}
-            />
+          <TabsContent value="routine" className="m-0 h-full overflow-y-auto">
+            <RoutineTab routines={routines} onAddRoutine={addRoutine} onDeleteRoutine={deleteRoutine} />
           </TabsContent>
 
-          {/* Task Dump Tab */}
-          <TabsContent value="dump" className="m-0 h-full">
+          <TabsContent value="dump" className="m-0 h-full overflow-y-auto">
             <TaskDumpTab 
-              activeTasks={activeDumpTasks}
-              completedTasks={completedDumpTasks}
+              activeTasks={tasks.filter(t => t.category === 'dump' && !t.completed)}
+              completedTasks={tasks.filter(t => t.category === 'dump' && t.completed)}
               showCompleted={showCompletedDump}
               setShowCompleted={setShowCompletedDump}
-              onAddTask={(text) => addTask(text, format(startOfToday(), 'yyyy-MM-dd'), 'dump')}
+              onAddTask={(text: string) => addTask(text, format(startOfToday(), 'yyyy-MM-dd'), 'dump')}
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
             />
@@ -280,415 +253,271 @@ export default function DailyPlannerPage() {
   );
 }
 
-// Day Column Component
-function DayColumn({ 
-  date, 
-  tasks, 
-  pendingTasks,
-  onAddTask, 
-  onToggleTask, 
-  onDeleteTask 
-}: {
-  date: Date;
-  tasks: Task[];
-  pendingTasks: Task[];
-  onAddTask: (text: string) => void;
-  onToggleTask: (id: string) => void;
-  onDeleteTask: (id: string) => void;
+function DayColumn({ date, tasks, routines, pendingTasks, onAddTask, onToggleTask, onDeleteTask }: {
+  date: Date; tasks: Task[]; routines: Routine[]; pendingTasks: Task[]; onAddTask: (text: string) => void; onToggleTask: (id: string, routineData?: any) => void; onDeleteTask: (id: string) => void;
 }) {
   const [newTaskText, setNewTaskText] = useState('');
   const [showPending, setShowPending] = useState(true);
   const isToday = isSameDay(date, startOfToday());
-  const activeTasks = tasks.filter(t => !t.completed);
-  const completedTasks = tasks.filter(t => t.completed);
+  const dateKey = format(date, 'yyyy-MM-dd');
 
-  const handleAddTask = () => {
-    if (newTaskText.trim()) {
-      onAddTask(newTaskText);
-      setNewTaskText('');
+  // Logic to determine if routine falls on this date
+  const isRoutineActiveOnDate = (routine: Routine, d: Date) => {
+    if (routine.frequency === 'daily') return true;
+    if (routine.frequency === 'weekly') return routine.selectedDays.includes(getDay(d));
+    if (routine.frequency === 'bi-weekly') {
+        const anchor = routine.createdAt ? new Date(routine.createdAt) : new Date(2024, 0, 1);
+        const weeksSince = differenceInWeeks(d, anchor);
+        return weeksSince % 2 === 0 && routine.selectedDays.includes(getDay(d));
     }
+    if (routine.frequency === 'monthly') return routine.selectedDate === getDate(d);
+    return false;
   };
 
+  const tasksForThisDay = tasks.filter(t => t.date === dateKey && t.category === 'daily');
+  const activeRoutines = routines.filter(r => isRoutineActiveOnDate(r, date));
+  
+  // Combine real tasks and virtual routines
+  const displayTasks = useMemo(() => {
+    const list = [...tasksForThisDay];
+    activeRoutines.forEach(r => {
+        if (!tasksForThisDay.some(t => t.routineId === r.id)) {
+            list.push({
+                id: `virtual-${r.id}`,
+                text: r.text,
+                completed: false,
+                date: dateKey,
+                category: 'daily',
+                routineId: r.id
+            });
+        }
+    });
+    return list.sort((a, b) => Number(a.completed) - Number(b.completed));
+  }, [tasksForThisDay, activeRoutines, dateKey]);
+
+  const activeDisplayTasks = displayTasks.filter(t => !t.completed);
+  const completedDisplayTasks = displayTasks.filter(t => t.completed);
+
   return (
-    <div className={cn(
-      "flex flex-col rounded-xl border bg-card overflow-hidden h-full min-h-[500px]",
-      isToday ? "border-amber-500/50 ring-1 ring-amber-500/20" : "border-border"
-    )}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 pb-3">
-        <div>
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            {format(date, 'EEEE')}, {format(date, 'd MMMM').toUpperCase()}
-          </h3>
+    <div className={cn("flex flex-col h-full rounded-[2.5rem] bg-card/40 border border-border/50 overflow-hidden min-w-[280px] md:min-w-0 transition-all", isToday && "ring-2 ring-emerald-500/20")}>
+      <div className="p-6 pb-4 flex items-center justify-between border-b border-border/10">
+        <div className="flex flex-col">
+           <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">{format(date, 'EEEE')}</h3>
+           <p className="text-sm font-black uppercase tracking-tighter">{format(date, 'MMM dd, yyyy')}</p>
         </div>
-        {isToday && (
-          <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">
-            TODAY
-          </span>
-        )}
+        {isToday && <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">Today</span>}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col px-3 pb-3 overflow-y-auto space-y-2">
-        {/* Pending Tasks Collapsible */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {isToday && pendingTasks.length > 0 && (
-          <div className="mb-2">
-            <button
-              onClick={() => setShowPending(!showPending)}
-              className="w-full flex items-center justify-between p-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-xs font-bold uppercase tracking-widest text-muted-foreground"
-            >
-              <span className="flex items-center gap-2">
-                Previous Pending Tasks
-                <span className="bg-amber-500 text-black px-1.5 py-0.5 rounded text-[10px]">
-                  {pendingTasks.length}
-                </span>
-              </span>
-              {showPending ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          <div className="space-y-2">
+            <button onClick={() => setShowPending(!showPending)} className="w-full h-10 px-4 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 text-[9px] font-black uppercase tracking-widest flex items-center justify-between text-amber-500 transition-all">
+              <span>Overdue Analytics ({pendingTasks.length})</span>
+              {showPending ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
             <AnimatePresence>
               {showPending && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="pt-2 space-y-1.5">
-                    {pendingTasks.map(task => (
-                      <TaskItem 
-                        key={task.id} 
-                        task={task} 
-                        onToggle={onToggleTask} 
-                        onDelete={onDeleteTask}
-                        isPending
-                      />
-                    ))}
-                  </div>
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-1">
+                  {pendingTasks.map(t => <TaskItem key={t.id} task={t} onToggle={onToggleTask} onDelete={onDeleteTask} isPending />)}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         )}
 
-        {/* Active Tasks */}
-        <div className="space-y-1.5">
-          {activeTasks.map(task => (
-            <TaskItem 
-              key={task.id} 
-              task={task} 
-              onToggle={onToggleTask} 
-              onDelete={onDeleteTask}
-            />
-          ))}
+        <div className="space-y-1">
+           {activeDisplayTasks.map(t => <TaskItem key={t.id} task={t} onToggle={onToggleTask} onDelete={onDeleteTask} />)}
         </div>
 
-        {/* Add Task Input */}
-        <div className="mt-auto pt-2">
-          <div className="flex items-center gap-2 p-2 rounded-lg border border-dashed border-border/50 hover:border-muted-foreground/30 transition-colors bg-background/50">
-            <Plus className="w-4 h-4 text-muted-foreground/50" />
-            <input
-              type="text"
-              value={newTaskText}
-              onChange={(e) => setNewTaskText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
-              placeholder="Add new task"
-              className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground/40 outline-none"
+        {completedDisplayTasks.length > 0 && (
+          <div className="space-y-1 pt-4 border-t border-border/10 opacity-30">
+            {completedDisplayTasks.map(t => <TaskItem key={t.id} task={t} onToggle={onToggleTask} onDelete={onDeleteTask} />)}
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 border-t border-border/10">
+        <div className="flex items-center gap-2 bg-muted/20 border border-border/50 rounded-2xl px-4 h-12">
+            <Plus className="w-4 h-4 text-muted-foreground/30" />
+            <input 
+              value={newTaskText} 
+              onChange={(e) => setNewTaskText(e.target.value)} 
+              onKeyDown={(e) => e.key === 'Enter' && newTaskText.trim() && (onAddTask(newTaskText), setNewTaskText(''))}
+              placeholder="Record objective..." 
+              className="flex-1 bg-transparent border-none text-[11px] font-bold outline-none placeholder:opacity-30"
             />
-          </div>
         </div>
-
-        {/* Empty State */}
-        {activeTasks.length === 0 && pendingTasks.length === 0 && (
-          <div className="flex-1 flex flex-col items-center justify-center opacity-30 py-12 space-y-3">
-            <CheckSquare className="w-12 h-12" />
-            <p className="text-xs font-bold uppercase tracking-widest text-center">No tasks for this day</p>
-            <button 
-              onClick={() => document.querySelector<HTMLInputElement>(`input[placeholder="Add new task"]`)?.focus()}
-              className="text-amber-500 text-xs font-bold uppercase tracking-widest hover:underline"
-            >
-              Add a new task
-            </button>
-          </div>
-        )}
-
-        {/* Completed Tasks */}
-        {completedTasks.length > 0 && (
-          <div className="pt-4 border-t border-border/30 mt-4 space-y-1.5 opacity-50">
-            {completedTasks.map(task => (
-              <TaskItem 
-                key={task.id} 
-                task={task} 
-                onToggle={onToggleTask} 
-                onDelete={onDeleteTask}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
-// Task Item Component
-function TaskItem({ 
-  task, 
-  onToggle, 
-  onDelete,
-  isPending = false
-}: {
-  task: Task;
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
-  isPending?: boolean;
-}) {
+function TaskItem({ task, onToggle, onDelete, isPending = false }: { task: Task; onToggle: (id: string, data?: any) => void; onDelete: (id: string) => void; isPending?: boolean; }) {
+  const isVirtual = task.id.toString().startsWith('virtual-');
   return (
-    <div className={cn(
-      "group flex items-center gap-3 p-2 rounded-lg transition-colors",
-      isPending && "bg-amber-500/10"
-    )}>
+    <div className={cn("group flex items-center gap-3 p-3 rounded-2xl hover:bg-muted/30 transition-all", isPending && "bg-amber-500/5")}>
       <Checkbox 
-        checked={task.completed}
-        onCheckedChange={() => onToggle(task.id)}
-        className="rounded-full border-muted-foreground/30 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+        checked={task.completed} 
+        onCheckedChange={() => onToggle(task.id, isVirtual ? { text: task.text, dateKey: task.date, routineId: task.routineId } : undefined)} 
+        className="w-5 h-5 rounded-lg border-2" 
       />
-      <span className={cn(
-        "flex-1 text-sm",
-        task.completed && "line-through text-muted-foreground"
-      )}>
-        {task.text}
-      </span>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-        onClick={() => onDelete(task.id)}
-      >
-        <Trash2 className="w-3.5 h-3.5" />
-      </Button>
+      <div className="flex-1 flex flex-col min-w-0">
+          <span className={cn("text-xs font-bold leading-tight truncate", task.completed && "line-through opacity-30")}>{task.text}</span>
+          {task.routineId && !task.completed && <span className="text-[7px] font-black uppercase text-emerald-500/40 tracking-widest mt-0.5 flex items-center gap-1"><Repeat className="w-2 h-2" /> Routine Instance</span>}
+      </div>
+      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive shrink-0" onClick={() => onDelete(task.id)}><Trash2 className="w-4 h-4" /></Button>
     </div>
   );
 }
 
-// Routine Tab Component
-function RoutineTab({ 
-  routines, 
-  onAddRoutine, 
-  onDeleteRoutine 
-}: {
-  routines: Routine[];
-  onAddRoutine: (text: string, frequency: Routine['frequency']) => void;
-  onDeleteRoutine: (id: string) => void;
-}) {
-  const [isCreating, setIsCreating] = useState(false);
+function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Routine[]; onAddRoutine: (t: string, f: Routine['frequency'], days: number[], date: number | null) => void; onDeleteRoutine: (id: string) => void; }) {
   const [newText, setNewText] = useState('');
   const [newFreq, setNewFreq] = useState<Routine['frequency']>('daily');
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [selectedDate, setSelectedDate] = useState<number>(1);
 
-  const handleCreate = () => {
-    if (newText.trim()) {
-      onAddRoutine(newText, newFreq);
-      setNewText('');
-      setIsCreating(false);
-    }
+  const toggleDay = (day: number) => {
+    setSelectedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
+  };
+
+  const handleCommit = () => {
+    if (!newText.trim()) return;
+    onAddRoutine(newText, newFreq, selectedDays, newFreq === 'monthly' ? selectedDate : null);
+    setNewText('');
+    setSelectedDays([]);
   };
 
   return (
-    <div className="p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-amber-500">
-          Routines are automatically added to your daily planner.
-        </p>
-        <Button 
-          onClick={() => setIsCreating(true)}
-          className="bg-transparent border border-amber-500 text-amber-500 hover:bg-amber-500/10 rounded-lg h-9 px-4 text-xs font-bold uppercase tracking-widest gap-2"
-        >
-          <Repeat className="w-3.5 h-3.5" />
-          Create new routine
-        </Button>
+    <div className="max-w-4xl mx-auto p-12 space-y-12 pb-32">
+      <div className="bg-card/40 border border-border/50 rounded-[2.5rem] p-10 space-y-10 flex flex-col shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-10 opacity-[0.02] pointer-events-none"><Repeat className="w-48 h-48" /></div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase tracking-widest opacity-30">Sequence Protocol Name</Label>
+                  <Input value={newText} onChange={(e) => setNewText(e.target.value)} placeholder="Identify recurring sequence..." className="h-14 bg-muted/10 border-border/50 rounded-2xl px-6 font-black text-xl" />
+              </div>
+              <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase tracking-widest opacity-30">Temporal Frequency</Label>
+                  <div className="flex gap-2">
+                    {(['daily', 'weekly', 'bi-weekly', 'monthly'] as const).map(f => (
+                      <Button key={f} variant="ghost" onClick={() => setNewFreq(f)} className={cn("flex-1 h-14 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all", newFreq === f ? "bg-emerald-500 text-black border-emerald-500 shadow-lg shadow-emerald-500/20" : "border-border/50 opacity-40 hover:opacity-100")}>{f}</Button>
+                    ))}
+                  </div>
+              </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {(newFreq === 'weekly' || newFreq === 'bi-weekly') && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-30">Active Day Selection</Label>
+                    <div className="flex flex-wrap gap-3">
+                        {WEEKDAYS.map((day, i) => (
+                            <Button key={day} onClick={() => toggleDay(i)} variant="ghost" className={cn("h-14 w-14 rounded-2xl border transition-all text-[10px] font-black uppercase", selectedDays.includes(i) ? "bg-emerald-500/10 border-emerald-500 text-emerald-500 shadow-inner" : "border-border/50 opacity-30")}>
+                                {day.slice(0, 3)}
+                            </Button>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
+            {newFreq === 'monthly' && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-30">Monthly Reference Date</Label>
+                    <div className="flex items-center gap-6">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" className="h-14 px-6 bg-muted/10 border-border/50 rounded-2xl font-black text-lg gap-4 shadow-inner">
+                                    <CalendarIcon className="w-5 h-5 text-emerald-500" />
+                                    Day {selectedDate}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 rounded-2xl border-border shadow-2xl" align="start">
+                                <Calendar 
+                                    mode="single" 
+                                    selected={new Date(new Date().getFullYear(), new Date().getMonth(), selectedDate)} 
+                                    onSelect={(d) => d && setSelectedDate(getDate(d))} 
+                                    initialFocus 
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        <span className="text-[10px] font-black uppercase tracking-widest opacity-20">Cycle will resolve on the {selectedDate}{selectedDate === 1 ? 'st' : selectedDate === 2 ? 'nd' : selectedDate === 3 ? 'rd' : 'th'} of every month.</span>
+                    </div>
+                </motion.div>
+            )}
+          </AnimatePresence>
+
+          <Button onClick={handleCommit} className="h-16 px-12 bg-white text-black hover:bg-zinc-100 rounded-[2rem] font-black uppercase tracking-widest text-[12px] self-end shadow-2xl transition-all active:scale-95">Commit Sequence</Button>
       </div>
 
-      {/* Create Form */}
-      <AnimatePresence>
-        {isCreating && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="bg-card border border-border rounded-xl p-4 space-y-4"
-          >
-            <Input
-              autoFocus
-              value={newText}
-              onChange={(e) => setNewText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-              placeholder="Routine name..."
-              className="bg-background border-border"
-            />
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Frequency:</span>
-              {(['daily', 'weekly', 'bi-weekly', 'monthly'] as const).map(f => (
-                <Button
-                  key={f}
-                  variant={newFreq === f ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setNewFreq(f)}
-                  className={cn(
-                    "text-xs capitalize",
-                    newFreq === f && "bg-amber-500 hover:bg-amber-600 text-black"
-                  )}
-                >
-                  {f}
-                </Button>
-              ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {routines.map(r => (
+          <div key={r.id} className="p-8 bg-card border border-border/50 rounded-[2.5rem] space-y-6 group hover:border-emerald-500/30 transition-all shadow-xl relative overflow-hidden">
+            <div className="flex items-center justify-between">
+                <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-emerald-500">{r.frequency}</span>
+                </div>
+                <Button variant="ghost" size="icon" className="h-9 w-9 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive rounded-xl transition-all" onClick={() => onDeleteRoutine(r.id)}><Trash2 className="w-4 h-4" /></Button>
             </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => setIsCreating(false)}>Cancel</Button>
-              <Button onClick={handleCreate} className="bg-amber-500 hover:bg-amber-600 text-black">Create</Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Routines List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {routines.map(routine => (
-          <div
-            key={routine.id}
-            className="group bg-card border border-border rounded-xl p-4 flex flex-col gap-2"
-          >
-            <h4 className="font-bold text-foreground">{routine.text}</h4>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Repeat className="w-3.5 h-3.5" />
-              <span className="capitalize">{routine.frequency}</span>
-            </div>
-            <div className="flex items-center gap-2 pt-2 mt-auto border-t border-border/50">
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground gap-1.5">
-                <Edit2 className="w-3 h-3" />
-                EDIT
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs text-muted-foreground hover:text-destructive gap-1.5"
-                onClick={() => onDeleteRoutine(routine.id)}
-              >
-                <Trash2 className="w-3 h-3" />
-                DELETE
-              </Button>
-            </div>
+            <p className="text-sm font-black uppercase tracking-tight leading-relaxed">{r.text}</p>
+            {(r.frequency === 'weekly' || r.frequency === 'bi-weekly') && (
+                <div className="flex gap-1.5 pt-2 border-t border-border/10">
+                    {r.selectedDays.map(d => (
+                        <span key={d} className="text-[7px] font-black uppercase tracking-widest opacity-30">{WEEKDAYS[d]}</span>
+                    ))}
+                </div>
+            )}
+            {r.frequency === 'monthly' && (
+                <div className="pt-2 border-t border-border/10">
+                     <span className="text-[7px] font-black uppercase tracking-widest opacity-30">Cycle: Day {r.selectedDate}</span>
+                </div>
+            )}
           </div>
         ))}
       </div>
-
-      {/* Empty State */}
-      {routines.length === 0 && !isCreating && (
-        <div className="flex flex-col items-center justify-center py-24 opacity-20 space-y-4">
-          <Repeat className="w-16 h-16" />
-          <p className="text-sm font-bold uppercase tracking-widest">No routines yet</p>
-        </div>
+      
+      {routines.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 opacity-5 space-y-6">
+              <Repeat className="w-24 h-24" />
+              <p className="text-[10px] font-black uppercase tracking-[0.4em]">No sequences active</p>
+          </div>
       )}
     </div>
   );
 }
 
-// Task Dump Tab Component
-function TaskDumpTab({ 
-  activeTasks, 
-  completedTasks, 
-  showCompleted, 
-  setShowCompleted,
-  onAddTask, 
-  onToggleTask, 
-  onDeleteTask 
-}: {
-  activeTasks: Task[];
-  completedTasks: Task[];
-  showCompleted: boolean;
-  setShowCompleted: (v: boolean) => void;
-  onAddTask: (text: string) => void;
-  onToggleTask: (id: string) => void;
-  onDeleteTask: (id: string) => void;
+function TaskDumpTab({ activeTasks, completedTasks, showCompleted, setShowCompleted, onAddTask, onToggleTask, onDeleteTask }: {
+    activeTasks: Task[];
+    completedTasks: Task[];
+    showCompleted: boolean;
+    setShowCompleted: (v: boolean) => void;
+    onAddTask: (text: string) => void;
+    onToggleTask: (id: string) => void;
+    onDeleteTask: (id: string) => void;
 }) {
-  const [newTaskText, setNewTaskText] = useState('');
-
-  const handleAdd = () => {
-    if (newTaskText.trim()) {
-      onAddTask(newTaskText);
-      setNewTaskText('');
-    }
-  };
-
+  const [newText, setNewText] = useState('');
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-4">
-      {/* Input */}
-      <div className="flex items-center gap-2 bg-card border border-border rounded-xl p-2">
-        <Input
-          value={newTaskText}
-          onChange={(e) => setNewTaskText(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-          placeholder="Enter a task and press enter"
-          className="border-none bg-transparent focus-visible:ring-0"
-        />
-        <Button 
-          onClick={handleAdd}
-          className="bg-transparent border border-muted-foreground/30 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg h-8 px-4 text-xs font-bold uppercase tracking-widest"
-        >
-          ↵ SAVE
-        </Button>
+    <div className="max-w-2xl mx-auto p-12 space-y-12">
+      <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur opacity-75 group-hover:opacity-100 transition duration-1000 rounded-[2.5rem]" />
+          <div className="relative flex items-center bg-card border border-border rounded-[2.5rem] p-3 pl-10 shadow-2xl">
+              <Input value={newText} onChange={(e) => setNewText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && newText.trim() && (onAddTask(newText), setNewText(''))} placeholder="Identify tactical dump objective..." className="border-none bg-transparent focus-visible:ring-0 h-14 text-sm font-bold placeholder:opacity-20" />
+              <Button onClick={() => { if(newText.trim()) { onAddTask(newText); setNewText(''); } }} className="bg-emerald-500 text-black rounded-2xl h-14 px-10 text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all active:scale-95">Record</Button>
+          </div>
       </div>
-
-      {/* Tasks List */}
       <div className="space-y-1">
-        {activeTasks.map(task => (
-          <TaskItem 
-            key={task.id} 
-            task={task} 
-            onToggle={onToggleTask} 
-            onDelete={onDeleteTask}
-          />
-        ))}
+        {activeTasks.map((t: any) => <TaskItem key={t.id} task={t} onToggle={onToggleTask} onDelete={onDeleteTask} />)}
       </div>
-
-      {/* Completed Toggle */}
       {completedTasks.length > 0 && (
-        <div className="flex justify-center pt-8">
-          <button
-            onClick={() => setShowCompleted(!showCompleted)}
-            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Flag className="w-3.5 h-3.5" />
-            {showCompleted ? 'Hide' : 'Show'} {completedTasks.length} completed task{completedTasks.length > 1 ? 's' : ''}
-          </button>
-        </div>
-      )}
-
-      {/* Completed Tasks */}
-      <AnimatePresence>
-        {showCompleted && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="space-y-1 overflow-hidden"
-          >
-            {completedTasks.map(task => (
-              <TaskItem 
-                key={task.id} 
-                task={task} 
-                onToggle={onToggleTask} 
-                onDelete={onDeleteTask}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Empty State */}
-      {activeTasks.length === 0 && completedTasks.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-24 opacity-20 space-y-4">
-          <Inbox className="w-16 h-16" />
-          <p className="text-sm font-bold uppercase tracking-widest">Task dump is empty</p>
-        </div>
+          <div className="flex flex-col gap-6">
+              <Button variant="ghost" onClick={() => setShowCompleted(!showCompleted)} className="self-center h-12 px-8 rounded-xl text-[9px] font-black uppercase tracking-widest opacity-20 hover:opacity-100 hover:bg-muted transition-all">
+                  {showCompleted ? 'Terminal Hide' : `Inspect ${completedTasks.length} Terminated Objectives`}
+              </Button>
+              <AnimatePresence>
+                {showCompleted && <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden space-y-1 opacity-30">
+                  {completedTasks.map((t: any) => <TaskItem key={t.id} task={t} onToggle={onToggleTask} onDelete={onDeleteTask} />)}
+                </motion.div>}
+              </AnimatePresence>
+          </div>
       )}
     </div>
   );

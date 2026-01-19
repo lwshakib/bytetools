@@ -23,6 +23,12 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  timezones     UserTimezone[]
+  tasks         Task[]
+  routines      Routine[]
+  savedPasswords SavedPassword[]
+  savedJwts     SavedJwt[]
+  savedQrCodes  SavedQrCode[]
 
   @@unique([email])
   @@map("user")
@@ -74,4 +80,87 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model UserTimezone {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city      String
+  country   String
+  timezone  String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("user_timezone")
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text      String
+  completed Boolean  @default(false)
+  date      String   // yyyy-MM-dd
+  category  String   // 'daily' or 'dump'
+  routineId String?  // ID of the routine this task was generated from
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("task")
+}
+
+model Routine {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text         String
+  frequency    String   // 'daily', 'weekly', 'bi-weekly', 'monthly'
+  selectedDays Int[]    // 0-6 for weekly/bi-weekly
+  selectedDate Int?     // 1-31 for monthly
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@map("routine")
+}
+
+model SavedPassword {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String   // e.g. "My Gmail Password"
+  hashedValue String // The bcrypt hash
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("saved_password")
+}
+
+model SavedJwt {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  token     String   @db.Text
+  secret    String?  // Optional secret used
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("saved_jwt")
+}
+
+model SavedQrCode {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  content   String   @db.Text
+  fgColor   String
+  level     String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("saved_qr_code")
 }
