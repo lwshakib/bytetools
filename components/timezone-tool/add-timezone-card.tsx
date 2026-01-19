@@ -41,7 +41,7 @@ export const AddTimezoneCard = () => {
     <Card 
       ref={cardRef}
       className={cn(
-        "relative bg-card border-border text-foreground min-w-[320px] md:min-w-[360px] h-[220px] overflow-hidden transition-all duration-300 p-0 m-0",
+        "relative bg-card border-border text-foreground w-full h-[220px] overflow-hidden transition-all duration-300 p-0 m-0",
         !isSearching && "cursor-pointer hover:bg-accent/50 hover:border-accent border-dashed flex flex-col items-center justify-center text-center"
       )}
       onClick={() => !isSearching && setIsSearching(true)}

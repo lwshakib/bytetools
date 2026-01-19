@@ -17,7 +17,12 @@ import {
   Pause,
   RotateCcw,
   Volume2,
-  VolumeX
+  VolumeX,
+  Timer as TimerIcon,
+  ShieldCheck,
+  Zap,
+  Coffee,
+  Brain
 } from 'lucide-react';
 import { format, addDays, startOfToday, subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -54,9 +59,8 @@ export default function PomodoroPage() {
   const [sessionsToday, setSessionsToday] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Load tasks from localStorage
+  // Persistence (Local Storage)
   useEffect(() => {
     const saved = localStorage.getItem('bt-pomodoro-tasks');
     if (saved) {
@@ -64,12 +68,11 @@ export default function PomodoroPage() {
     }
   }, []);
 
-  // Save tasks to localStorage
   useEffect(() => {
     localStorage.setItem('bt-pomodoro-tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // Timer logic
+  // Timer Logic
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
@@ -87,7 +90,6 @@ export default function PomodoroPage() {
   const handleTimerComplete = () => {
     setIsRunning(false);
     if (!isMuted) {
-      // Play notification sound
       try {
         const audio = new Audio('/notification.mp3');
         audio.play().catch(() => {});
@@ -96,30 +98,16 @@ export default function PomodoroPage() {
     
     if (mode === 'focus') {
       setSessionsToday(prev => prev + 1);
-      toast.success('Focus session completed! Time for a break.');
+      toast.success('Focus session completed! Breakthrough achieved.');
     } else {
-      toast.success('Break time over! Ready to focus?');
+      toast.success('Neural recharge complete. Ready to focus?');
     }
   };
 
-  const toggleTimer = () => {
-    setIsRunning(!isRunning);
-  };
-
-  const resetTimer = () => {
-    setIsRunning(false);
-    setTimeLeft(TIMER_DEFAULTS[mode]);
-  };
-
-  const changeMode = (newMode: TimerMode) => {
-    setMode(newMode);
-    setIsRunning(false);
-    setTimeLeft(TIMER_DEFAULTS[newMode]);
-  };
-
-  const addTime = (minutes: number) => {
-    setTimeLeft(prev => prev + minutes * 60);
-  };
+  const toggleTimer = () => setIsRunning(!isRunning);
+  const resetTimer = () => { setIsRunning(false); setTimeLeft(TIMER_DEFAULTS[mode]); };
+  const changeMode = (newMode: TimerMode) => { setMode(newMode); setIsRunning(false); setTimeLeft(TIMER_DEFAULTS[newMode]); };
+  const addTime = (minutes: number) => setTimeLeft(prev => prev + minutes * 60);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -127,283 +115,217 @@ export default function PomodoroPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Task functions
   const addTask = () => {
     if (!newTaskText.trim()) return;
-    const task: Task = {
-      id: Math.random().toString(36).substring(2, 9),
-      text: newTaskText.trim(),
-      completed: false,
-    };
-    setTasks([...tasks, task]);
+    setTasks([...tasks, { id: Math.random().toString(36).substring(2, 9), text: newTaskText.trim(), completed: false }]);
     setNewTaskText('');
   };
 
-  const toggleTask = (id: string) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
-  };
+  const toggleTask = (id: string) => setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
 
   const pendingTasks = tasks.filter(t => !t.completed);
   const completedTasks = tasks.filter(t => t.completed);
   const displayTasks = activeTab === 'pending' ? pendingTasks : completedTasks;
 
   return (
-    <div className="flex flex-1 h-full overflow-hidden">
-      {/* Left Panel - Task List */}
-      <div className="w-80 lg:w-96 border-r border-border bg-background flex flex-col shrink-0">
-        {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-border">
-          <div className="flex items-center gap-1">
-            <Button
-              variant={activeTab === 'pending' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('pending')}
-              className="h-7 px-3 text-[10px] font-bold uppercase tracking-widest rounded-lg"
-            >
-              <Checkbox className="w-3 h-3 mr-1.5 rounded-sm" checked={false} />
-              Pending
-            </Button>
-            <Button
-              variant={activeTab === 'completed' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('completed')}
-              className="h-7 px-3 text-[10px] font-bold uppercase tracking-widest rounded-lg"
-            >
-              <Checkbox className="w-3 h-3 mr-1.5 rounded-sm" checked />
-              Completed
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-bold">
-              <span className="flex items-center gap-1">
-                📅 {format(selectedDate, 'd MMM')}
-              </span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-7 w-7"
-              onClick={() => setSelectedDate(subDays(selectedDate, 1))}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-7 w-7"
-              onClick={() => setSelectedDate(addDays(selectedDate, 1))}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Previous Pending Tasks */}
-        <div className="p-3 border-b border-border">
-          <button
-            onClick={() => setShowPending(!showPending)}
-            className="w-full flex items-center justify-between p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors text-xs font-bold uppercase tracking-widest text-muted-foreground"
-          >
-            <span className="flex items-center gap-2">
-              Previous Pending Tasks
-              <span className="bg-muted px-1.5 py-0.5 rounded text-[10px]">
-                {pendingTasks.length}
-              </span>
-            </span>
-            {showPending ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
-        </div>
-
-        {/* Task List */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          <AnimatePresence>
-            {showPending && displayTasks.map(task => (
-              <motion.div
-                key={task.id}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors group"
-              >
-                <Checkbox 
-                  checked={task.completed}
-                  onCheckedChange={() => toggleTask(task.id)}
-                  className="rounded-full"
-                />
-                <div className="flex-1 flex items-center gap-2">
-                  {task.isRoutine && (
-                    <span className="text-[9px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded">
-                      🔄 ROUTINE
-                    </span>
-                  )}
-                  <span className={cn(
-                    "text-sm",
-                    task.completed && "line-through text-muted-foreground"
-                  )}>
-                    {task.text}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {/* Add Task Input */}
-        <div className="p-3 border-t border-border">
-          <div className="flex items-center gap-2 p-2 rounded-lg border border-dashed border-border/50 hover:border-muted-foreground/30 transition-colors bg-muted/10">
-            <Plus className="w-4 h-4 text-muted-foreground/50" />
-            <input
-              type="text"
-              value={newTaskText}
-              onChange={(e) => setNewTaskText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addTask()}
-              placeholder="Add new task"
-              className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground/40 outline-none"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Right Panel - Timer */}
-      <div className="flex-1 flex flex-col bg-muted/5 relative">
-        {/* Top Right Actions */}
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/50 hover:text-foreground">
-            <BarChart3 className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/50 hover:text-foreground">
-            <Settings className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/50 hover:text-foreground">
-            <Maximize2 className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* Timer Content */}
-        <div className="flex-1 flex flex-col items-center justify-center space-y-8">
-          {/* Mode Tabs */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => changeMode('focus')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                mode === 'focus' 
-                  ? "bg-muted border border-border text-foreground" 
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Focus
-            </button>
-            <button
-              onClick={() => changeMode('shortBreak')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                mode === 'shortBreak' 
-                  ? "bg-muted border border-border text-foreground" 
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Short Break
-            </button>
-            <button
-              onClick={() => changeMode('longBreak')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                mode === 'longBreak' 
-                  ? "bg-muted border border-border text-foreground" 
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Long Break
-            </button>
-          </div>
-
-          {/* Timer Display */}
-          <div className="relative">
-            <motion.div
-              key={mode}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-[140px] md:text-[180px] font-extralight tracking-tighter tabular-nums leading-none"
-            >
-              {formatTime(timeLeft)}
-            </motion.div>
-          </div>
-
-          {/* Time Adjustment */}
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <button 
-              onClick={() => addTime(25)}
-              className="hover:text-foreground transition-colors"
-            >
-              + 25 min
-            </button>
-            <button 
-              onClick={() => addTime(10)}
-              className="hover:text-foreground transition-colors"
-            >
-              + 10 min
-            </button>
-            <button 
-              onClick={() => addTime(5)}
-              className="hover:text-foreground transition-colors"
-            >
-              + 5 min
-            </button>
-            <button 
-              onClick={() => addTime(1)}
-              className="hover:text-foreground transition-colors"
-            >
-              + 1 min
-            </button>
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={toggleTimer}
-              variant="outline"
-              className="h-10 px-8 rounded-lg border-border text-sm font-medium"
-            >
-              {isRunning ? (
-                <>
-                  <Pause className="w-4 h-4 mr-2" />
-                  Pause
-                </>
-              ) : (
-                'Start'
-              )}
-            </Button>
-            {isRunning && (
+    <div className="flex flex-1 flex-col h-full bg-background overflow-hidden">
+      <div className="flex flex-1 flex-col lg:flex-row h-full">
+        {/* Left Side: Neural Tasks */}
+        <div className="w-full lg:w-[400px] border-r border-border/50 bg-card/20 flex flex-col shrink-0">
+          <div className="p-8 border-b border-border/50 bg-muted/30">
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-foreground mb-6 flex items-center gap-2">
+              <Brain className="w-4 h-4 text-amber-500" />
+              Cognitive Backlog
+            </h2>
+            <div className="flex items-center gap-2 p-1.5 bg-background/50 rounded-xl border border-border/50">
               <Button
-                onClick={resetTimer}
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 rounded-lg"
+                variant={activeTab === 'pending' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setActiveTab('pending')}
+                className="flex-1 h-9 rounded-lg text-[10px] font-black uppercase tracking-widest"
               >
-                <RotateCcw className="w-4 h-4" />
+                In Queue
               </Button>
-            )}
-            <Button
-              onClick={() => setIsMuted(!isMuted)}
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 rounded-lg text-muted-foreground"
-            >
-              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </Button>
+              <Button
+                variant={activeTab === 'completed' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setActiveTab('completed')}
+                className="flex-1 h-9 rounded-lg text-[10px] font-black uppercase tracking-widest"
+              >
+                Terminated
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-3">
+             <AnimatePresence mode="popLayout">
+                {displayTasks.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 opacity-10 space-y-4">
+                    <Zap className="w-12 h-12" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Awaiting brain dump</p>
+                  </div>
+                ) : (
+                  displayTasks.map(task => (
+                    <motion.div
+                      key={task.id}
+                      layout
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-border/50 hover:border-amber-500/30 transition-all group shadow-sm"
+                    >
+                      <Checkbox 
+                        checked={task.completed}
+                        onCheckedChange={() => toggleTask(task.id)}
+                        className="rounded-lg w-5 h-5 border-border/50 data-[state=checked]:bg-amber-500 data-[state=checked]:border-none shadow-md"
+                      />
+                      <span className={cn(
+                        "text-sm font-bold tracking-tight flex-1",
+                        task.completed && "line-through text-muted-foreground/50 font-medium"
+                      )}>
+                        {task.text}
+                      </span>
+                    </motion.div>
+                  ))
+                )}
+             </AnimatePresence>
+          </div>
+
+          <div className="p-8 border-t border-border/50 bg-muted/30">
+             <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/10 to-orange-500/10 blur opacity-75 rounded-2xl" />
+                <div className="relative flex items-center gap-3 bg-background border border-border/50 rounded-2xl p-2 pl-4">
+                  <Plus className="w-4 h-4 text-muted-foreground/30" />
+                  <input
+                    type="text"
+                    value={newTaskText}
+                    onChange={(e) => setNewTaskText(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addTask()}
+                    placeholder="Buffer new objective..."
+                    className="flex-1 bg-transparent text-xs font-bold placeholder:font-medium placeholder:opacity-30 outline-none"
+                  />
+                  <Button onClick={addTask} size="icon" className="h-10 w-10 bg-zinc-800 text-white rounded-xl hover:bg-zinc-700">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 text-center">
-          <p className="text-sm text-muted-foreground/50">
-            {sessionsToday === 0 
-              ? 'No sessions today' 
-              : `${sessionsToday} session${sessionsToday > 1 ? 's' : ''} today`
-            }
-          </p>
+        {/* Right Side: Temporal Core */}
+        <div className="flex-1 flex flex-col bg-background p-6 md:p-8 lg:p-12 overflow-y-auto">
+          <div className="max-w-4xl mx-auto w-full flex flex-col items-center">
+            {/* Header Section */}
+            <div className="flex flex-col items-center text-center space-y-4 mb-16">
+                <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2"
+                >
+                    <TimerIcon className="w-3.5 h-3.5" />
+                    Neural Focus Hub Active
+                </motion.div>
+                <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-foreground uppercase">FOCUS <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">ARCHITECT</span></h1>
+                <p className="text-muted-foreground text-sm font-medium uppercase tracking-[0.3em] opacity-40">Precision Temporal Partitioning</p>
+            </div>
+
+            {/* Main Timer Display */}
+            <div className="relative mb-16">
+                <div className="absolute -inset-20 bg-amber-500/5 blur-[120px] rounded-full opacity-50" />
+                <div className="relative flex flex-col items-center justify-center p-16 md:p-24 bg-card/40 border border-border/50 rounded-[4rem] shadow-2xl backdrop-blur-xl">
+                    {/* Mode Navigation */}
+                    <div className="flex items-center gap-6 mb-12 bg-muted/30 p-2 rounded-[2rem] border border-border/50">
+                        {[
+                          { id: 'focus' as TimerMode, label: 'Focus', icon: Brain },
+                          { id: 'shortBreak' as TimerMode, label: 'Recharge', icon: Coffee },
+                          { id: 'longBreak' as TimerMode, label: 'Deep Break', icon: Zap }
+                        ].map((m) => (
+                          <Button
+                            key={m.id}
+                            variant="ghost"
+                            onClick={() => changeMode(m.id)}
+                            className={cn(
+                              "h-12 px-6 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest gap-2 transition-all",
+                              mode === m.id ? "bg-background text-amber-500 shadow-xl" : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <m.icon className="w-4 h-4" />
+                            {m.label}
+                          </Button>
+                        ))}
+                    </div>
+
+                    <motion.div
+                        key={mode}
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="text-[120px] md:text-[180px] font-black tracking-tighter tabular-nums leading-none text-foreground select-none"
+                    >
+                        {formatTime(timeLeft)}
+                    </motion.div>
+
+                    <div className="flex items-center gap-4 mt-12">
+                        <Button
+                          onClick={toggleTimer}
+                          className={cn(
+                            "h-16 px-12 rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] shadow-2xl transition-all active:scale-95 gap-3",
+                            isRunning ? "bg-zinc-800 text-white" : "bg-amber-500 text-black shadow-amber-500/20"
+                          )}
+                        >
+                          {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-current" />}
+                          {isRunning ? 'Interrupt' : 'Initiate'}
+                        </Button>
+                        <Button
+                            onClick={resetTimer}
+                            variant="outline"
+                            className="h-16 w-16 rounded-[2rem] border-border/50 hover:bg-muted text-foreground transition-all active:scale-95"
+                        >
+                            <RotateCcw className="w-5 h-5" />
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Time Adjusters */}
+            <div className="grid grid-cols-4 gap-4 w-full max-w-md pb-12">
+                {[1, 5, 10, 25].map((m) => (
+                    <Button
+                        key={m}
+                        variant="ghost"
+                        onClick={() => addTime(m)}
+                        className="h-16 rounded-2xl border border-border/50 bg-card/50 text-[10px] font-black uppercase tracking-widest hover:bg-amber-500/10 hover:text-amber-500 transition-all active:scale-90"
+                    >
+                        + {m}m
+                    </Button>
+                ))}
+            </div>
+
+            {/* Info Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full border-t border-border/10 pt-12">
+                {[
+                    { icon: ShieldCheck, title: "Neural Guard", desc: "Digital sensory isolation for absolute concentration peaks.", color: "text-amber-500", bg: "bg-amber-500/10" },
+                    { icon: BarChart3, title: "Temporal Analytics", desc: "Data-driven flow cycle tracking and optimization.", color: "text-blue-500", bg: "bg-blue-500/10" },
+                    { icon: Settings, title: "Core Parity", desc: "Synchronized focus logic across your local ecosystem.", color: "text-emerald-500", bg: "bg-emerald-500/10" }
+                ].map((item, i) => (
+                    <div key={i} className="p-8 rounded-[2rem] bg-card/40 border border-border/50 relative overflow-hidden group">
+                        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-all group-hover:scale-110", item.bg)}>
+                            <item.icon className={cn("w-6 h-6", item.color)} />
+                        </div>
+                        <h4 className="text-[10px] font-black text-foreground mb-3 uppercase tracking-widest">{item.title}</h4>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed font-bold uppercase tracking-tighter opacity-40">{item.desc}</p>
+                    </div>
+                ))}
+            </div>
+
+            <div className="mt-12 text-center">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/30">
+                    {sessionsToday === 0 
+                      ? 'System awaiting first session cycle' 
+                      : `${sessionsToday} Successive Cycles Completed Today`
+                    }
+                </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

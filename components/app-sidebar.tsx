@@ -11,6 +11,7 @@ import {
   Hourglass,
   Gamepad2,
   Hash,
+  ShieldCheck,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -75,6 +76,11 @@ const data = {
       title: "Stopwatch",
       url: "/stopwatch",
       icon: Timer,
+    },
+    {
+      title: "JWT Tool",
+      url: "/jwt",
+      icon: ShieldCheck,
     },
   ],
 }

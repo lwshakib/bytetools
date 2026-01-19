@@ -26,7 +26,7 @@ interface TimezoneCardProps {
 }
 
 export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, timezone }) => {
-  const { baseTime, setBaseTime, resetTime, removeTimezone, updateTimezone, selectedTimezones, selectedId, setSelectedId } = useTimezoneStore();
+  const { baseTime, setTimeOffset, resetTime, removeTimezone, updateTimezone, selectedTimezones, selectedId, setSelectedId } = useTimezoneStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isClockOpen, setIsClockOpen] = useState(false);
   const [liveNow, setLiveNow] = useState(new Date());
@@ -66,7 +66,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     return toZonedTime(new Date(baseTime), timezone);
   }, [baseTime, timezone]);
 
-  const timeStr = format(zonedDate, 'hh:mm');
+  const timeStr = format(zonedDate, 'hh:mm:ss');
   const amPm = format(zonedDate, 'a').toUpperCase();
   const offset = format(zonedDate, 'xxx');
   const dateStr = format(zonedDate, 'MMM dd');
@@ -77,9 +77,10 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     const newMinutes = parseInt(e.target.value, 10);
     const deltaMinutes = newMinutes - minutesInDay;
     if (deltaMinutes !== 0) {
-      setBaseTime(baseTime + deltaMinutes * 60000);
+      const newBaseTime = baseTime + deltaMinutes * 60000;
+      setTimeOffset(newBaseTime - Date.now());
     }
-  }, [baseTime, minutesInDay, setBaseTime]);
+  }, [baseTime, minutesInDay, setTimeOffset]);
 
   const handleSelect = (newCity: CityData) => {
     updateTimezone(id, {
@@ -129,7 +130,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
       ref={cardRef}
       onClick={() => setSelectedId(id)}
       className={cn(
-        "relative bg-card border-border text-card-foreground min-w-[320px] md:min-w-[360px] h-[220px] group overflow-hidden shadow-xl p-0 m-0 flex flex-col cursor-default transition-colors",
+        "relative bg-card border-border text-card-foreground w-full h-[220px] group overflow-hidden shadow-xl p-0 m-0 flex flex-col cursor-default transition-colors",
         isSelected && !isEditing ? "ring-2 ring-primary/50 border-primary/20" : "border-border",
         !isEditing && "hover:border-accent"
     )}>

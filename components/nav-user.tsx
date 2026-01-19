@@ -29,6 +29,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { signOut } from "@/lib/auth-client"
 import Link from "next/link"
 
 export function NavUser({
@@ -42,9 +43,14 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
 
-  const handleLogout = () => {
-    // Implement logout logic here
-    console.log("Logging out...")
+  const handleLogout = async () => {
+    await signOut({
+        fetchOptions: {
+            onSuccess: () => {
+                // Stay on same page
+            }
+        }
+    })
   }
 
   return (

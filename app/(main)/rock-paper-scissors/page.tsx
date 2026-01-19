@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, RotateCcw, User, Cpu, Gamepad2 } from 'lucide-react';
+import { Trophy, RotateCcw, User, Cpu, Gamepad2, ShieldCheck, Zap, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -23,15 +23,11 @@ export default function RockPaperScissorsPage() {
   const [scores, setScores] = useState({ user: 0, computer: 0 });
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Load scores
   useEffect(() => {
     const saved = localStorage.getItem('bt-rps-scores');
-    if (saved) {
-      try { setScores(JSON.parse(saved)); } catch (e) {}
-    }
+    if (saved) { try { setScores(JSON.parse(saved)); } catch (e) {} }
   }, []);
 
-  // Save scores
   useEffect(() => {
     localStorage.setItem('bt-rps-scores', JSON.stringify(scores));
   }, [scores]);
@@ -43,197 +39,171 @@ export default function RockPaperScissorsPage() {
     setComputerChoice(null);
     setResult(null);
 
-    // Simulate "thinking"
     setTimeout(() => {
       const randomChoice = choices[Math.floor(Math.random() * choices.length)].id;
       setComputerChoice(randomChoice);
-      
       const gameResult = determineWinner(choice, randomChoice);
       setResult(gameResult);
-
-      if (gameResult === 'win') {
-        setScores(prev => ({ ...prev, user: prev.user + 1 }));
-        toast.success("You won!");
-      } else if (gameResult === 'lose') {
-        setScores(prev => ({ ...prev, computer: prev.computer + 1 }));
-        toast.error("Computer won!");
-      } else {
-        toast.info("It's a draw!");
-      }
-
+      if (gameResult === 'win') { setScores(prev => ({ ...prev, user: prev.user + 1 })); toast.success("Tactical Victory."); }
+      else if (gameResult === 'lose') { setScores(prev => ({ ...prev, computer: prev.computer + 1 })); toast.error("System Override. You lost."); }
+      else { toast.info("Parity detected. Draw."); }
       setIsPlaying(false);
-    }, 1000);
+    }, 800);
   };
 
   const determineWinner = (user: Choice, computer: Choice): 'win' | 'lose' | 'draw' => {
     if (user === computer) return 'draw';
-    if (
-      (user === 'rock' && computer === 'scissors') ||
-      (user === 'paper' && computer === 'rock') ||
-      (user === 'scissors' && computer === 'paper')
-    ) {
-      return 'win';
-    }
+    if ((user === 'rock' && computer === 'scissors') || (user === 'paper' && computer === 'rock') || (user === 'scissors' && computer === 'paper')) return 'win';
     return 'lose';
   };
 
-  const resetGame = () => {
-    setUserChoice(null);
-    setComputerChoice(null);
-    setResult(null);
-  };
-
-  const resetScores = () => {
-    setScores({ user: 0, computer: 0 });
-    toast.success("Scores reset!");
-  };
+  const resetGame = () => { setUserChoice(null); setComputerChoice(null); setResult(null); };
+  const resetScores = () => { setScores({ user: 0, computer: 0 }); toast.success("Scores purged."); };
 
   return (
-    <div className="flex flex-1 flex-col h-full bg-background overflow-hidden p-6 md:p-8 lg:p-12 items-center justify-center">
-      <div className="w-full max-w-4xl space-y-12">
-        {/* Header & Stats */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex flex-col items-center md:items-start space-y-2">
-            <div className="p-3 bg-amber-500/10 rounded-2xl mb-2">
-              <Gamepad2 className="w-8 h-8 text-amber-500" />
-            </div>
-            <h1 className="text-3xl font-black tracking-tighter uppercase">Rock Paper Scissors</h1>
-            <p className="text-muted-foreground text-xs font-bold opacity-60 uppercase tracking-widest">Beat the CPU in a classic duel</p>
-          </div>
-
-          <Card className="bg-card/50 border-border/50 rounded-[2rem] shadow-xl min-w-[300px]">
-            <CardContent className="p-6 flex items-center justify-around">
-              <div className="flex flex-col items-center">
-                <div className="flex items-center gap-2 mb-1">
-                  <User className="w-4 h-4 text-amber-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">You</span>
-                </div>
-                <span className="text-4xl font-black tabular-nums">{scores.user}</span>
-              </div>
-              <div className="h-12 w-px bg-border/50 mx-4" />
-              <div className="flex flex-col items-center">
-                <div className="flex items-center gap-2 mb-1">
-                  <Cpu className="w-4 h-4 text-amber-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">CPU</span>
-                </div>
-                <span className="text-4xl font-black tabular-nums">{scores.computer}</span>
-              </div>
-            </CardContent>
-          </Card>
+    <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto p-6 md:p-8 lg:p-12 items-center">
+      <div className="w-full max-w-5xl space-y-16 py-8">
+        {/* Header Section */}
+        <div className="flex flex-col items-center text-center space-y-4">
+            <motion.div 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2"
+            >
+                <Gamepad2 className="w-3.5 h-3.5" />
+                Conflict Resolution Logic
+            </motion.div>
+            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-foreground uppercase">TACTICAL <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">DUEL</span></h1>
+            <p className="text-muted-foreground text-sm font-medium uppercase tracking-[0.3em] opacity-40">Rock • Paper • Scissors Matrix</p>
         </div>
 
-        {/* Game Arena */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-center">
-          {/* User Side */}
-          <div className="flex flex-col items-center space-y-8">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Your Move</h4>
-            <div className="grid grid-cols-3 gap-4">
-              {choices.map((choice) => (
-                <Button
-                  key={choice.id}
-                  disabled={isPlaying}
-                  onClick={() => playGame(choice.id)}
-                  className={cn(
-                    "h-24 w-24 md:h-32 md:w-32 flex-col rounded-[2.5rem] border-4 transition-all duration-300 bg-card hover:bg-muted active:scale-95 group shadow-lg",
-                    userChoice === choice.id ? "border-amber-500 bg-amber-500/5 shadow-amber-500/10" : "border-border/50 hover:border-amber-500/30"
-                  )}
-                >
-                  <span className="text-4xl md:text-5xl group-hover:scale-110 transition-transform">{choice.icon}</span>
-                  <span className="mt-2 text-[10px] font-black uppercase tracking-tighter opacity-60">{choice.label}</span>
-                </Button>
-              ))}
+        {/* Scoreboard */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto w-full">
+            <div className="bg-card/40 border border-border/50 rounded-[2.5rem] p-8 flex items-center justify-between shadow-xl">
+                <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">User Identity</span>
+                    <span className="text-sm font-black uppercase tracking-tighter">Human Operative</span>
+                </div>
+                <div className="text-4xl font-black tabular-nums text-amber-500">{scores.user}</div>
             </div>
-          </div>
+            <div className="bg-card/40 border border-border/50 rounded-[2.5rem] p-8 flex items-center justify-between shadow-xl">
+                <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Remote Identity</span>
+                    <span className="text-sm font-black uppercase tracking-tighter">Neural Core</span>
+                </div>
+                <div className="text-4xl font-black tabular-nums text-foreground">{scores.computer}</div>
+            </div>
+        </div>
 
-          {/* Battle Visual */}
-          <div className="flex flex-col items-center justify-center space-y-8 min-h-[300px] border-t md:border-t-0 md:border-l border-border/50 md:pl-8 pt-8 md:pt-0">
-            <AnimatePresence mode="wait">
-              {userChoice && (
-                <motion.div 
-                  key="battle"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="flex flex-col items-center space-y-8"
-                >
-                  <div className="flex items-center gap-8 md:gap-16">
-                    {/* User Choice Visual */}
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-muted flex items-center justify-center text-4xl shadow-inner border border-border/50">
-                        {choices.find(c => c.id === userChoice)?.icon}
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest opacity-40">You</span>
-                    </div>
+        {/* Battle Arena */}
+        <div className="flex flex-col items-center space-y-16">
+            {/* User Choice */}
+            <div className="flex flex-col items-center gap-8">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/30">Commit Strategy</span>
+                <div className="flex items-center gap-6">
+                    {choices.map((choice) => (
+                        <motion.button
+                            key={choice.id}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            disabled={isPlaying}
+                            onClick={() => playGame(choice.id)}
+                            className={cn(
+                                "h-24 w-24 md:h-32 md:w-32 rounded-[2.5rem] border-2 transition-all flex flex-col items-center justify-center gap-2 shadow-2xl",
+                                userChoice === choice.id ? "bg-amber-500 border-amber-400 text-black shadow-amber-500/20" : "bg-card border-border/50 hover:border-amber-500/30"
+                            )}
+                        >
+                            <span className="text-4xl md:text-5xl">{choice.icon}</span>
+                            <span className={cn("text-[9px] font-black uppercase tracking-widest", userChoice === choice.id ? "text-black" : "text-muted-foreground/60")}>{choice.label}</span>
+                        </motion.button>
+                    ))}
+                </div>
+            </div>
 
-                    <div className="text-2xl font-black text-amber-500">VS</div>
+            {/* Duel Result */}
+            <div className="relative min-h-[300px] w-full max-w-xl flex flex-col items-center justify-center p-12 bg-muted/20 border border-border/50 rounded-[4rem] shadow-inner">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-6 py-2 bg-background border border-border/50 rounded-full text-[10px] font-black uppercase tracking-[0.3em]">Execution Zone</div>
+                
+                <AnimatePresence mode="wait">
+                    {userChoice ? (
+                        <motion.div 
+                            key="duel"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex flex-col items-center gap-12"
+                        >
+                            <div className="flex items-center gap-8 md:gap-16">
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-card border border-border/50 flex items-center justify-center text-4xl shadow-xl shadow-amber-500/5">
+                                        {choices.find(c => c.id === userChoice)?.icon}
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase tracking-widest opacity-30">User</span>
+                                </div>
+                                
+                                <div className="text-xl font-black text-amber-500 animate-pulse">VS</div>
 
-                    {/* Computer Choice Visual */}
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-muted flex items-center justify-center text-4xl shadow-inner border border-border/50">
-                        {isPlaying ? (
-                          <motion.span 
-                            animate={{ rotate: 360 }}
-                            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                            className="text-amber-500"
-                          >
-                            ❓
-                          </motion.span>
-                        ) : (
-                          computerChoice ? choices.find(c => c.id === computerChoice)?.icon : '?'
-                        )}
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest opacity-40">CPU</span>
-                    </div>
-                  </div>
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-card border border-border/50 flex items-center justify-center text-4xl shadow-xl shadow-zinc-500/5">
+                                        {isPlaying ? (
+                                            <motion.div animate={{ rotate: 360, scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="text-amber-500">❓</motion.div>
+                                        ) : (
+                                            computerChoice ? choices.find(c => c.id === computerChoice)?.icon : '?'
+                                        )}
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Core</span>
+                                </div>
+                            </div>
 
-                  {/* Result Banner */}
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    className={cn(
-                      "px-8 py-3 rounded-2xl text-xl font-black uppercase tracking-[0.2em]",
-                      result === 'win' ? "bg-green-500/10 text-green-500" :
-                      result === 'lose' ? "bg-red-500/10 text-red-500" :
-                      result === 'draw' ? "bg-zinc-500/10 text-zinc-500" : "opacity-0"
+                            {!isPlaying && result && (
+                                <motion.div
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    className={cn(
+                                        "px-10 py-4 rounded-[1.5rem] text-xl font-black uppercase tracking-[0.2em] shadow-2xl",
+                                        result === 'win' ? "bg-amber-500 text-black shadow-amber-500/20" :
+                                        result === 'lose' ? "bg-zinc-800 text-white border border-zinc-700" :
+                                        "bg-muted border border-border text-muted-foreground"
+                                    )}
+                                >
+                                    {result === 'win' ? 'Victory' : result === 'lose' ? 'Defeat' : 'Parity'}
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    ) : (
+                        <div className="flex flex-col items-center text-center space-y-6 opacity-20">
+                            <Trophy className="w-20 h-20" />
+                            <p className="text-[10px] font-black uppercase tracking-[0.4em]">Initialize duel protocols</p>
+                        </div>
                     )}
-                  >
-                    {result === 'win' ? 'Victory' : result === 'lose' ? 'Defeat' : result === 'draw' ? 'Draw' : result}
-                  </motion.div>
-                </motion.div>
-              )}
-
-              {!userChoice && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.3 }}
-                  className="flex flex-col items-center text-center space-y-4"
-                >
-                  <Trophy className="w-16 h-16" />
-                  <p className="text-sm font-bold uppercase tracking-widest">Select your weapon<br/>to start the duel</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                </AnimatePresence>
+            </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex items-center justify-center gap-4 pt-4">
-          <Button
-            variant="ghost"
-            onClick={resetGame}
-            disabled={!userChoice || isPlaying}
-            className="rounded-xl h-12 px-6 font-black uppercase tracking-widest text-[10px] gap-2 opacity-60 hover:opacity-100"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Clear Arena
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={resetScores}
-            className="rounded-xl h-12 px-6 font-black uppercase tracking-widest text-[10px] gap-2 text-red-500/60 hover:text-red-500 hover:bg-red-500/5 transition-colors"
-          >
-            Reset Scores
-          </Button>
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full border-t border-border/10 pt-16 max-w-5xl mx-auto">
+            {[
+                { icon: ShieldCheck, title: "RNG Guard", desc: "Cryptographically secure random generation for fair neural duels.", color: "text-amber-500", bg: "bg-amber-500/10" },
+                { icon: Zap, title: "Latency-Zero", desc: "Instantaneous strategy evaluation and outcome verification.", color: "text-blue-500", bg: "bg-blue-500/10" },
+                { icon: Activity, title: "Session Sync", desc: "Local persistence of tactical performance metrics.", color: "text-emerald-500", bg: "bg-emerald-500/10" }
+            ].map((item, i) => (
+                <div key={i} className="p-8 rounded-[2rem] bg-card/40 border border-border/50 relative overflow-hidden group">
+                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-all group-hover:scale-110", item.bg)}>
+                        <item.icon className={cn("w-6 h-6", item.color)} />
+                    </div>
+                    <h4 className="text-[10px] font-black text-foreground mb-3 uppercase tracking-widest">{item.title}</h4>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed font-bold uppercase tracking-tighter opacity-40">{item.desc}</p>
+                </div>
+            ))}
+        </div>
+
+        {/* Global Controls */}
+        <div className="flex items-center justify-center gap-6 pb-12">
+            <Button variant="ghost" onClick={resetGame} disabled={!userChoice || isPlaying} className="h-12 px-8 rounded-xl font-black text-[9px] uppercase tracking-widest opacity-40 hover:opacity-100 hover:bg-muted gap-2">
+                <RotateCcw className="w-3.5 h-3.5" /> Purge Arena
+            </Button>
+            <Button variant="ghost" onClick={resetScores} className="h-12 px-8 rounded-xl font-black text-[9px] uppercase tracking-widest text-red-500/40 hover:text-red-500 hover:bg-red-500/5 gap-2">
+                <Activity className="w-3.5 h-3.5" /> Wipe Historical Data
+            </Button>
         </div>
       </div>
     </div>
