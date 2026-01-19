@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import bcrypt from "bcryptjs";
+import { encrypt, decrypt } from "@/lib/encryption";
 
 export async function GET() {
     const session = await auth.api.getSession({
@@ -18,7 +18,22 @@ export async function GET() {
         orderBy: { createdAt: 'desc' }
     });
 
-    return NextResponse.json(passwords);
+    // Decrypt passwords for the UI
+    const decryptedPasswords = passwords.map(p => {
+        try {
+            return {
+                ...p,
+                value: decrypt(p.hashedValue)
+            };
+        } catch (e) {
+            return {
+                ...p,
+                value: '[REDACTED HASH]'
+            };
+        }
+    });
+
+    return NextResponse.json(decryptedPasswords);
 }
 
 export async function POST(req: Request) {
@@ -36,19 +51,21 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Password value is required" }, { status: 400 });
     }
 
-    // Bcrypt as requested
-    const salt = await bcrypt.genSalt(10);
-    const hashedValue = await bcrypt.hash(value, salt);
+    // Encrypting for retrieval as requested (secure two-way storage)
+    const encryptedValue = encrypt(value);
 
     const savedPassword = await prisma.savedPassword.create({
         data: {
             userId: session.user.id,
             name: name || "Saved Password",
-            hashedValue
+            hashedValue: encryptedValue
         }
     });
 
-    return NextResponse.json(savedPassword);
+    return NextResponse.json({
+        ...savedPassword,
+        value
+    });
 }
 
 export async function DELETE(req: Request) {

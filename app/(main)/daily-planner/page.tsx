@@ -227,6 +227,7 @@ export default function DailyPlannerPage() {
                   onAddTask={(text) => addTask(text, format(date, 'yyyy-MM-dd'), 'daily')}
                   onToggleTask={toggleTask}
                   onDeleteTask={deleteTask}
+                  session={session}
                 />
               ))}
             </div>
@@ -245,6 +246,7 @@ export default function DailyPlannerPage() {
               onAddTask={(text: string) => addTask(text, format(startOfToday(), 'yyyy-MM-dd'), 'dump')}
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
+              session={session}
             />
           </TabsContent>
         </div>
@@ -253,8 +255,8 @@ export default function DailyPlannerPage() {
   );
 }
 
-function DayColumn({ date, tasks, routines, pendingTasks, onAddTask, onToggleTask, onDeleteTask }: {
-  date: Date; tasks: Task[]; routines: Routine[]; pendingTasks: Task[]; onAddTask: (text: string) => void; onToggleTask: (id: string, routineData?: any) => void; onDeleteTask: (id: string) => void;
+function DayColumn({ date, tasks, routines, pendingTasks, onAddTask, onToggleTask, onDeleteTask, session }: {
+  date: Date; tasks: Task[]; routines: Routine[]; pendingTasks: Task[]; onAddTask: (text: string) => void; onToggleTask: (id: string, routineData?: any) => void; onDeleteTask: (id: string) => void; session: any;
 }) {
   const [newTaskText, setNewTaskText] = useState('');
   const [showPending, setShowPending] = useState(true);
@@ -336,15 +338,24 @@ function DayColumn({ date, tasks, routines, pendingTasks, onAddTask, onToggleTas
         )}
       </div>
 
-      <div className="p-4 border-t border-border/10">
+      <div className="p-4 border-t border-border/10 relative">
+        {!session?.user && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[2px] cursor-pointer" onClick={() => document.getElementById('signin-trigger')?.click()}>
+               <div className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border/50 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95">
+                   <Package className="w-3 h-3 text-muted-foreground" />
+                   <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Sign in to Plan</span>
+               </div>
+            </div>
+        )}
         <div className="flex items-center gap-2 bg-muted/20 border border-border/50 rounded-2xl px-4 h-12">
             <Plus className="w-4 h-4 text-muted-foreground/30" />
             <input 
               value={newTaskText} 
               onChange={(e) => setNewTaskText(e.target.value)} 
+              disabled={!session?.user}
               onKeyDown={(e) => e.key === 'Enter' && newTaskText.trim() && (onAddTask(newTaskText), setNewTaskText(''))}
               placeholder="Record objective..." 
-              className="flex-1 bg-transparent border-none text-[11px] font-bold outline-none placeholder:opacity-30"
+              className="flex-1 bg-transparent border-none text-[11px] font-bold outline-none placeholder:opacity-30 disabled:text-muted-foreground/50"
             />
         </div>
       </div>
@@ -485,7 +496,7 @@ function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Rou
   );
 }
 
-function TaskDumpTab({ activeTasks, completedTasks, showCompleted, setShowCompleted, onAddTask, onToggleTask, onDeleteTask }: {
+function TaskDumpTab({ activeTasks, completedTasks, showCompleted, setShowCompleted, onAddTask, onToggleTask, onDeleteTask, session }: {
     activeTasks: Task[];
     completedTasks: Task[];
     showCompleted: boolean;
@@ -493,15 +504,37 @@ function TaskDumpTab({ activeTasks, completedTasks, showCompleted, setShowComple
     onAddTask: (text: string) => void;
     onToggleTask: (id: string) => void;
     onDeleteTask: (id: string) => void;
+    session: any;
 }) {
   const [newText, setNewText] = useState('');
   return (
     <div className="max-w-2xl mx-auto p-12 space-y-12">
       <div className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur opacity-75 group-hover:opacity-100 transition duration-1000 rounded-[2.5rem]" />
-          <div className="relative flex items-center bg-card border border-border rounded-[2.5rem] p-3 pl-10 shadow-2xl">
-              <Input value={newText} onChange={(e) => setNewText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && newText.trim() && (onAddTask(newText), setNewText(''))} placeholder="Identify tactical dump objective..." className="border-none bg-transparent focus-visible:ring-0 h-14 text-sm font-bold placeholder:opacity-20" />
-              <Button onClick={() => { if(newText.trim()) { onAddTask(newText); setNewText(''); } }} className="bg-emerald-500 text-black rounded-2xl h-14 px-10 text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all active:scale-95">Record</Button>
+          <div className="relative flex items-center bg-card border border-border rounded-[2.5rem] p-3 pl-10 shadow-2xl overflow-hidden">
+               {!session?.user && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[2px] cursor-pointer" onClick={() => document.getElementById('signin-trigger')?.click()}>
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border/50 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95">
+                            <Package className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Sign in to Dump</span>
+                        </div>
+                    </div>
+               )}
+              <Input 
+                  value={newText} 
+                  onChange={(e) => setNewText(e.target.value)} 
+                  onKeyDown={(e) => e.key === 'Enter' && newText.trim() && (onAddTask(newText), setNewText(''))} 
+                  placeholder="Identify tactical dump objective..." 
+                  disabled={!session?.user}
+                  className="border-none bg-transparent focus-visible:ring-0 h-14 text-sm font-bold placeholder:opacity-20 disabled:text-muted-foreground/30" 
+              />
+              <Button 
+                  onClick={() => { if(newText.trim()) { onAddTask(newText); setNewText(''); } }} 
+                  disabled={!session?.user}
+                  className="bg-emerald-500 text-black rounded-2xl h-14 px-10 text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+              >
+                Record
+              </Button>
           </div>
       </div>
       <div className="space-y-1">

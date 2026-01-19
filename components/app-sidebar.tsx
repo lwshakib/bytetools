@@ -106,6 +106,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           }} />
         ) : (
           <Button 
+            id="signin-trigger"
             variant="ghost" 
             className="w-full justify-start gap-4 px-4 h-12 text-muted-foreground hover:text-foreground hover:bg-accent transition-all group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:justify-center"
             onClick={() => setIsAuthModalOpen(true)}

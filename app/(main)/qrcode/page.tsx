@@ -73,7 +73,9 @@ export default function QRCodePage() {
 
   const handleSaveQr = async () => {
     if (!session?.user) {
-      toast.error('Sign in to save QRs');
+      toast.error('You must be signed in to usage the Optical Vault', {
+        description: 'Secure storage protocols require authentication.'
+      });
       return;
     }
     if (!value) {
@@ -95,7 +97,7 @@ export default function QRCodePage() {
       });
 
       if (res.ok) {
-        toast.success('Saved to Vault');
+        toast.success('Optical configuration saved to vault');
         setQrName('');
         fetchSavedQrCodes();
       }
@@ -376,28 +378,35 @@ export default function QRCodePage() {
                         </Button>
                       </div>
 
-                      {session?.user && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex gap-3 bg-card border border-border/50 p-4 rounded-2xl shadow-xl"
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex gap-3 bg-card border border-border/50 p-4 rounded-2xl shadow-xl relative overflow-hidden"
+                      >
+                         {!session?.user && (
+                            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm z-10 flex items-center justify-center cursor-pointer" onClick={() => document.getElementById('signin-trigger')?.click()}>
+                                <div className="flex items-center gap-2 px-4 py-2 bg-background/80 border border-border/50 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95">
+                                    <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Authenticate to Vault</span>
+                                </div>
+                            </div>
+                        )}
+                        <Input
+                          placeholder="Snapshot Descriptor..."
+                          value={qrName}
+                          onChange={(e) => setQrName(e.target.value)}
+                          disabled={!session?.user}
+                          className="h-12 bg-muted/20 border-border/50 text-[11px] font-bold rounded-xl"
+                        />
+                        <Button 
+                          onClick={handleSaveQr}
+                          disabled={isSaving || !session?.user}
+                          className="h-12 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border border-amber-500/20 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
                         >
-                          <Input
-                            placeholder="Snapshot Descriptor..."
-                            value={qrName}
-                            onChange={(e) => setQrName(e.target.value)}
-                            className="h-12 bg-muted/20 border-border/50 text-[11px] font-bold rounded-xl"
-                          />
-                          <Button 
-                            onClick={handleSaveQr}
-                            disabled={isSaving}
-                            className="h-12 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border border-amber-500/20 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
-                          >
-                            <CloudDownload className="w-4 h-4 mr-2" />
-                            {isSaving ? 'Syncing...' : 'Vault Save'}
-                          </Button>
-                        </motion.div>
-                      )}
+                          <CloudDownload className="w-4 h-4 mr-2" />
+                          {isSaving ? 'Syncing...' : 'Vault Save'}
+                        </Button>
+                      </motion.div>
                     </div>
                   </div>
                 </div>
@@ -536,87 +545,102 @@ export default function QRCodePage() {
           </div>
 
           {/* Cloud Vault Side Panel */}
-          {session?.user && (
-            <div className="lg:col-span-4 xl:col-span-3">
-                <Card className="bg-card border-border/50 shadow-2xl rounded-[2.5rem] sticky top-8 flex flex-col h-[calc(100vh-8rem)] overflow-hidden">
-                    <CardHeader className="bg-muted/30 border-b border-border/50 p-10">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center shadow-inner">
-                                <Package className="w-6 h-6 text-amber-500" />
-                            </div>
-                            <div className="flex flex-col">
-                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground">Archive Vault</h3>
-                                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-40">Optical Metadata</p>
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="flex-1 overflow-y-auto p-6 scrollbar-hide">
-                        {savedQrCodes.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center space-y-8 opacity-20 px-6">
-                            <div className="w-20 h-20 rounded-3xl bg-muted flex items-center justify-center border-4 border-dashed border-muted-foreground/20">
-                                <QrCode className="w-10 h-10" />
-                            </div>
-                            <div className="space-y-4">
-                                <p className="text-[10px] font-black uppercase tracking-widest">Vault Secured</p>
-                                <p className="text-[9px] font-bold leading-relaxed uppercase tracking-tighter">Awaiting first optical capture for cloud synchronization.</p>
-                            </div>
-                        </div>
-                        ) : (
-                        <div className="space-y-4">
-                            <AnimatePresence mode="popLayout">
-                            {savedQrCodes.map((item) => (
-                                <motion.div
-                                key={item.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                className="group flex flex-col p-6 rounded-[2rem] bg-muted/20 border border-border/50 hover:bg-muted/40 hover:border-amber-500/20 transition-all cursor-pointer relative overflow-hidden"
-                                onClick={() => loadSavedQr(item)}
-                                >
-                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteQr(item.id);
-                                        }}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
+          {/* Cloud Vault Side Panel */}
+          <div className="lg:col-span-4 xl:col-span-3">
+              <Card className="bg-card border-border/50 shadow-2xl rounded-[2.5rem] sticky top-8 flex flex-col h-[calc(100vh-8rem)] overflow-hidden relative">
+                  {!session?.user && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-md cursor-pointer group/vault" onClick={() => document.getElementById('signin-trigger')?.click()}>
+                            <div className="flex flex-col items-center gap-6 px-10 text-center">
+                                <div className="w-20 h-20 rounded-[2rem] bg-amber-500/10 flex items-center justify-center border border-amber-500/20 shadow-2xl transition-transform group-hover/vault:scale-110">
+                                    <QrCode className="w-10 h-10 text-amber-500" />
                                 </div>
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex flex-col">
-                                        <span className="text-xs font-black text-foreground uppercase tracking-tight truncate pr-8">{item.name}</span>
-                                        <span className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-tighter">
-                                            Archived {new Date(item.createdAt).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center border-4 border-amber-500/10 shadow-lg">
-                                            <QRCodeSVG 
-                                                value={item.content} 
-                                                size={32} 
-                                                fgColor={item.fgColor} 
-                                                level={item.level} 
-                                            />
-                                        </div>
-                                        <code className="text-[10px] bg-background/50 px-3 py-2 rounded-xl truncate text-amber-600 font-mono flex-1 border border-border/20">
-                                            {item.content}
-                                        </code>
-                                    </div>
+                                <div className="space-y-2">
+                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-foreground">Vault Locked</h4>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">Authenticate to synchronize and manage your optical metadata archive.</p>
                                 </div>
-                                </motion.div>
-                            ))}
-                            </AnimatePresence>
+                                <Button className="h-12 bg-amber-500 text-black rounded-xl px-8 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20">
+                                    Verify Identity
+                                </Button>
+                            </div>
                         </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-          )}
+                    )}
+                  <CardHeader className="bg-muted/30 border-b border-border/50 p-10">
+                      <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center shadow-inner">
+                              <Package className="w-6 h-6 text-amber-500" />
+                          </div>
+                          <div className="flex flex-col">
+                              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground">Archive Vault</h3>
+                              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-40">Optical Metadata</p>
+                          </div>
+                      </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+                      {savedQrCodes.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full text-center space-y-8 opacity-20 px-6">
+                          <div className="w-20 h-20 rounded-3xl bg-muted flex items-center justify-center border-4 border-dashed border-muted-foreground/20">
+                              <QrCode className="w-10 h-10" />
+                          </div>
+                          <div className="space-y-4">
+                              <p className="text-[10px] font-black uppercase tracking-widest">Vault Secured</p>
+                              <p className="text-[9px] font-bold leading-relaxed uppercase tracking-tighter">Awaiting first optical capture for cloud synchronization.</p>
+                          </div>
+                      </div>
+                      ) : (
+                      <div className="space-y-4">
+                          <AnimatePresence mode="popLayout">
+                          {savedQrCodes.map((item) => (
+                              <motion.div
+                              key={item.id}
+                              layout
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.9 }}
+                              className="group flex flex-col p-6 rounded-[2rem] bg-muted/20 border border-border/50 hover:bg-muted/40 hover:border-amber-500/20 transition-all cursor-pointer relative overflow-hidden"
+                              onClick={() => loadSavedQr(item)}
+                              >
+                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                      onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteQr(item.id);
+                                      }}
+                                  >
+                                      <Trash2 className="w-4 h-4" />
+                                  </Button>
+                              </div>
+                              <div className="flex flex-col gap-4">
+                                  <div className="flex flex-col">
+                                      <span className="text-xs font-black text-foreground uppercase tracking-tight truncate pr-8">{item.name}</span>
+                                      <span className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-tighter">
+                                          Archived {new Date(item.createdAt).toLocaleDateString()}
+                                      </span>
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                      <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center border-4 border-amber-500/10 shadow-lg">
+                                          <QRCodeSVG 
+                                              value={item.content} 
+                                              size={32} 
+                                              fgColor={item.fgColor} 
+                                              level={item.level} 
+                                          />
+                                      </div>
+                                      <code className="text-[10px] bg-background/50 px-3 py-2 rounded-xl truncate text-amber-600 font-mono flex-1 border border-border/20">
+                                          {item.content}
+                                      </code>
+                                  </div>
+                              </div>
+                              </motion.div>
+                          ))}
+                          </AnimatePresence>
+                      </div>
+                      )}
+                  </CardContent>
+              </Card>
+          </div>
         </div>
       </div>
     </div>

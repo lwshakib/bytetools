@@ -153,7 +153,9 @@ export default function JWTToolPage() {
 
   const handleSaveJwt = async () => {
     if (!session?.user) {
-      toast.error('Please sign in to save JWTs');
+      toast.error('You must be signed in to usage the Token Vault', {
+          description: 'Secure storage protocols require authentication.'
+      });
       return;
     }
     if (!encodedToken) {
@@ -173,7 +175,7 @@ export default function JWTToolPage() {
         headers: { 'Content-Type': 'application/json' }
       });
       if (res.ok) {
-        toast.success('JWT saved to vault');
+        toast.success('Token object committed to vault');
         setJwtName('');
         fetchSavedJwts();
       } else {
@@ -390,21 +392,30 @@ export default function JWTToolPage() {
                             </CardContent>
                             </Card>
 
-                            {session?.user && encodedToken && (
+                            {encodedToken && (
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="flex gap-3 bg-card border border-border/50 px-6 py-4 rounded-[1.5rem] shadow-lg"
+                                className="flex gap-3 bg-card border border-border/50 px-6 py-4 rounded-[1.5rem] shadow-lg relative overflow-hidden"
                             >
+                                {!session?.user && (
+                                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[2px] cursor-pointer" onClick={() => document.getElementById('signin-trigger')?.click()}>
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border/50 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95">
+                                            <Package className="w-3 h-3 text-muted-foreground" />
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Sign in to Save</span>
+                                        </div>
+                                    </div>
+                                )}
                                 <Input
                                     placeholder="Name this JWT..."
                                     value={jwtName}
                                     onChange={(e) => setJwtName(e.target.value)}
+                                    disabled={!session?.user}
                                     className="h-12 bg-muted/20 border-border/50 text-[11px] font-bold rounded-xl"
                                 />
                                 <Button
                                     onClick={handleSaveJwt}
-                                    disabled={isSaving}
+                                    disabled={isSaving || !session?.user}
                                     className="h-12 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 whitespace-nowrap px-8 rounded-xl text-[10px] font-black uppercase tracking-widest"
                                 >
                                     <CloudDownload className="w-4 h-4 mr-2" />
@@ -562,84 +573,99 @@ export default function JWTToolPage() {
             </div>
 
             {/* Cloud Vault Integrated Panel */}
-            {session?.user && (
-                <div className="lg:col-span-4 xl:col-span-3">
-                    <Card className="bg-card border-border/50 shadow-2xl rounded-[2.5rem] sticky top-8 flex flex-col h-[calc(100vh-8rem)] overflow-hidden">
-                        <CardHeader className="bg-muted/30 border-b border-border/50 p-8">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-inner">
-                                    <Package className="w-5 h-5 text-primary" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground">Cloud Vault</h3>
-                                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Architect Identity Store</p>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-1 overflow-y-auto p-6 scrollbar-hide">
-                            {savedJwts.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-center space-y-6 opacity-30 px-4">
-                                <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center border-4 border-dashed border-muted-foreground/20">
-                                    <Lock className="w-8 h-8" />
+            {/* Cloud Vault Integrated Panel */}
+            <div className="lg:col-span-4 xl:col-span-3">
+                <Card className="bg-card border-border/50 shadow-2xl rounded-[2.5rem] sticky top-8 flex flex-col h-[calc(100vh-8rem)] overflow-hidden relative">
+                    {!session?.user && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-md cursor-pointer group/vault" onClick={() => document.getElementById('signin-trigger')?.click()}>
+                            <div className="flex flex-col items-center gap-6 px-10 text-center">
+                                <div className="w-20 h-20 rounded-[2rem] bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-2xl transition-transform group-hover/vault:scale-110">
+                                    <Lock className="w-10 h-10 text-blue-500" />
                                 </div>
                                 <div className="space-y-2">
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Vault Empty</p>
-                                    <p className="text-[9px] font-medium leading-relaxed">Save your first token to unlock cloud synchronization across your devices.</p>
+                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-foreground">Vault Locked</h4>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">Authenticate to synchronize and manage your architectural token identity store.</p>
                                 </div>
+                                <Button className="h-12 bg-blue-500 text-white rounded-xl px-8 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 shadow-primary/20">
+                                    Verify Identity
+                                </Button>
                             </div>
-                            ) : (
-                            <div className="space-y-4">
-                                <AnimatePresence mode="popLayout">
-                                {savedJwts.map((item) => (
-                                    <motion.div
-                                    key={item.id}
-                                    layout
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    className="group flex flex-col p-5 rounded-[1.5rem] bg-muted/20 border border-border/50 hover:bg-muted/40 hover:border-primary/20 transition-all cursor-pointer relative overflow-hidden"
-                                    onClick={() => loadSavedJwt(item)}
+                        </div>
+                    )}
+                    <CardHeader className="bg-muted/30 border-b border-border/50 p-8">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-inner">
+                                <Package className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex flex-col">
+                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground">Cloud Vault</h3>
+                                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Architect Identity Store</p>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+                        {savedJwts.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-center space-y-6 opacity-30 px-4">
+                            <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center border-4 border-dashed border-muted-foreground/20">
+                                <Lock className="w-8 h-8" />
+                            </div>
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-black uppercase tracking-widest">Vault Empty</p>
+                                <p className="text-[9px] font-medium leading-relaxed">Save your first token to unlock cloud synchronization across your devices.</p>
+                            </div>
+                        </div>
+                        ) : (
+                        <div className="space-y-4">
+                            <AnimatePresence mode="popLayout">
+                            {savedJwts.map((item) => (
+                                <motion.div
+                                key={item.id}
+                                layout
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="group flex flex-col p-5 rounded-[1.5rem] bg-muted/20 border border-border/50 hover:bg-muted/40 hover:border-primary/20 transition-all cursor-pointer relative overflow-hidden"
+                                onClick={() => loadSavedJwt(item)}
+                                >
+                                <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteJwt(item.id);
+                                        }}
                                     >
-                                    <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDeleteJwt(item.id);
-                                            }}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex flex-col">
+                                        <span className="text-[11px] font-black text-foreground uppercase tracking-tight truncate pr-8">{item.name}</span>
+                                        <span className="text-[8px] text-muted-foreground/40 font-bold uppercase tracking-tighter">
+                                            Stored {new Date(item.createdAt).toLocaleDateString()}
+                                        </span>
                                     </div>
-                                    <div className="flex flex-col gap-3">
-                                        <div className="flex flex-col">
-                                            <span className="text-[11px] font-black text-foreground uppercase tracking-tight truncate pr-8">{item.name}</span>
-                                            <span className="text-[8px] text-muted-foreground/40 font-bold uppercase tracking-tighter">
-                                                Stored {new Date(item.createdAt).toLocaleDateString()}
+                                    <code className="text-[10px] bg-background/50 px-3 py-2 rounded-xl truncate text-blue-500/70 border border-border/30 font-mono">
+                                        {item.token}
+                                    </code>
+                                    {item.secret && (
+                                        <div className="pt-1">
+                                            <span className="text-[8px] text-emerald-500 uppercase tracking-[0.2em] font-black flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 rounded-full w-fit">
+                                                <Key className="w-2.5 h-2.5" /> Key Secured
                                             </span>
                                         </div>
-                                        <code className="text-[10px] bg-background/50 px-3 py-2 rounded-xl truncate text-blue-500/70 border border-border/30 font-mono">
-                                            {item.token}
-                                        </code>
-                                        {item.secret && (
-                                            <div className="pt-1">
-                                                <span className="text-[8px] text-emerald-500 uppercase tracking-[0.2em] font-black flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 rounded-full w-fit">
-                                                    <Key className="w-2.5 h-2.5" /> Key Secured
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    </motion.div>
-                                ))}
-                                </AnimatePresence>
-                            </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
+                                    )}
+                                </div>
+                                </motion.div>
+                            ))}
+                            </AnimatePresence>
+                        </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
       </div>
     </div>
