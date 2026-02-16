@@ -12,6 +12,9 @@ import {
   Gamepad2,
   Hash,
   ShieldCheck,
+  TrendingUp,
+  Scale,
+  Activity,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -81,6 +84,26 @@ const data = {
       title: "JWT Tool",
       url: "/jwt",
       icon: ShieldCheck,
+    },
+    {
+      title: "Currency Converter",
+      url: "/currency-converter",
+      icon: TrendingUp,
+    },
+    {
+      title: "Age Calculator",
+      url: "/age-calculator",
+      icon: Calendar,
+    },
+    {
+      title: "BMI Calculator",
+      url: "/bmi-calculator",
+      icon: Activity,
+    },
+    {
+      title: "Weight Converter",
+      url: "/weight-converter",
+      icon: Scale,
     },
   ],
 }

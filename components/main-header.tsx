@@ -24,6 +24,10 @@ const routeMap: Record<string, string> = {
   "/qrcode": "QR Code",
   "/stopwatch": "Stopwatch",
   "/account": "Account Settings",
+  "/currency-converter": "Currency Converter",
+  "/age-calculator": "Age Calculator",
+  "/bmi-calculator": "BMI Calculator",
+  "/weight-converter": "Weight Converter",
 }
 
 export function MainHeader() {
