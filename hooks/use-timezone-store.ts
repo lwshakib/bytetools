@@ -1,3 +1,7 @@
+/**
+ * Global state management for the World Clock / Timezone tool.
+ * Uses Zustand to manage selected timezones, current viewing time, and UI state.
+ */
 import { create } from 'zustand';
 import { cities } from '@/lib/timezone-data';
 
@@ -10,9 +14,9 @@ export interface TimezoneItem {
 
 interface TimezoneStore {
   selectedTimezones: TimezoneItem[];
-  baseTime: number; // Current viewing timestamp in ms
-  timeOffset: number; // User adjusted offset in ms
-  selectedId: string | null;
+  baseTime: number; // The current reference timestamp (ms) being displayed.
+  timeOffset: number; // The difference between baseTime and the current real-world time.
+  selectedId: string | null; // The ID of the timezone that is currently highlighted or being edited.
   addTimezone: (item: TimezoneItem) => void;
   updateTimezone: (id: string, item: Partial<TimezoneItem>) => void;
   removeTimezone: (id: string) => void;
@@ -23,6 +27,9 @@ interface TimezoneStore {
   setAllTimezones: (items: TimezoneItem[]) => void;
 }
 
+/**
+ * Helper to generate a TimezoneItem based on the user's local system timezone.
+ */
 const getLocalTimezoneItem = (): TimezoneItem => {
   const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const match = cities.find(c => c.timezone === localTz);
@@ -39,23 +46,29 @@ const getLocalTimezoneItem = (): TimezoneItem => {
 };
 
 export const useTimezoneStore = create<TimezoneStore>()((set) => ({
+  // Initialize with the user's local timezone.
   selectedTimezones: [getLocalTimezoneItem()],
   baseTime: Date.now(),
   timeOffset: 0,
   selectedId: 'local',
+  
   addTimezone: (item) => set((state) => ({
     selectedTimezones: [...state.selectedTimezones, item],
     selectedId: item.id
   })),
+  
   updateTimezone: (id, newItem) => set((state) => ({
     selectedTimezones: state.selectedTimezones.map((tz) => 
       tz.id === id ? { ...tz, ...newItem } : tz
     )
   })),
+  
   removeTimezone: (id) => set((state) => ({
     selectedTimezones: state.selectedTimezones.filter((t) => t.id !== id),
+    // Ensure another timezone is selected if the currently selected one is removed.
     selectedId: state.selectedId === id ? (state.selectedTimezones.length > 1 ? state.selectedTimezones[0].id : null) : state.selectedId
   })),
+  
   setBaseTime: (time) => set({ baseTime: time }),
   setTimeOffset: (offset) => set({ timeOffset: offset }),
   resetTime: () => set({ baseTime: Date.now(), timeOffset: 0 }),
