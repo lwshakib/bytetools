@@ -396,18 +396,18 @@ function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Rou
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-12 space-y-12 pb-32">
-      <div className="bg-card/40 border border-border/50 rounded-2xl p-8 space-y-8 flex flex-col shadow-sm relative overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Routine Name</Label>
-                  <Input value={newText} onChange={(e) => setNewText(e.target.value)} placeholder="Identify recurring task..." className="h-12 bg-muted/10 border-border/50 rounded-xl px-4 font-semibold text-lg" />
+    <div className="max-w-2xl mx-auto p-8 space-y-8 pb-32">
+      <div className="space-y-6">
+          <div className="space-y-4">
+              <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Routine Name</Label>
+                  <Input value={newText} onChange={(e) => setNewText(e.target.value)} placeholder="Routine name..." className="h-10 bg-muted/20 border-border/50 rounded-lg px-3 text-sm font-medium" />
               </div>
-              <div className="space-y-4">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Frequency</Label>
-                  <div className="flex gap-2">
+              <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Frequency</Label>
+                  <div className="flex gap-1">
                     {(['daily', 'weekly', 'bi-weekly', 'monthly'] as const).map(f => (
-                      <Button key={f} variant="ghost" onClick={() => setNewFreq(f)} className={cn("flex-1 h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all", newFreq === f ? "bg-primary text-primary-foreground border-primary" : "border-border/50 opacity-40 hover:opacity-100")}>{f}</Button>
+                      <Button key={f} variant="ghost" size="sm" onClick={() => setNewFreq(f)} className={cn("flex-1 h-9 rounded-md text-[10px] font-bold uppercase transition-all", newFreq === f ? "bg-primary/10 text-primary hover:bg-primary/15" : "text-muted-foreground hover:bg-muted")}>{f}</Button>
                     ))}
                   </div>
               </div>
@@ -415,29 +415,29 @@ function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Rou
 
           <AnimatePresence mode="wait">
             {(newFreq === 'weekly' || newFreq === 'bi-weekly') && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Repeat on</Label>
-                    <div className="flex flex-wrap gap-2">
+                <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Repeat on</Label>
+                    <div className="flex flex-wrap gap-1">
                         {WEEKDAYS.map((day, i) => (
-                            <Button key={day} onClick={() => toggleDay(i)} variant="ghost" className={cn("h-12 w-12 rounded-xl border transition-all text-[10px] font-bold uppercase", selectedDays.includes(i) ? "bg-primary/5 border-primary text-primary" : "border-border/50 opacity-40")}>
-                                {day.slice(0, 3)}
+                            <Button key={day} onClick={() => toggleDay(i)} variant="ghost" className={cn("h-9 w-9 rounded-md border text-[10px] font-bold uppercase transition-all", selectedDays.includes(i) ? "bg-primary/10 border-primary/20 text-primary" : "border-border/50 text-muted-foreground/60")}>
+                                {day.slice(0, 1)}
                             </Button>
                         ))}
                     </div>
                 </motion.div>
             )}
             {newFreq === 'monthly' && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Monthly Date</Label>
+                <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Monthly Date</Label>
                     <div className="flex items-center gap-4">
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button variant="ghost" className="h-12 px-5 bg-muted/10 border-border/50 rounded-xl font-bold text-base gap-3">
-                                    <CalendarIcon className="w-4 h-4 text-primary" />
+                                <Button variant="outline" className="h-9 px-3 bg-muted/10 border-border/50 rounded-md font-bold text-xs gap-2">
+                                    <CalendarIcon className="w-3.5 h-3.5 text-primary/60" />
                                     Day {selectedDate}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 rounded-xl border-border shadow-xl" align="start">
+                            <PopoverContent className="w-auto p-0 rounded-lg border-border shadow-xl" align="start">
                                 <Calendar 
                                     mode="single" 
                                     selected={new Date(new Date().getFullYear(), new Date().getMonth(), selectedDate)} 
@@ -451,10 +451,10 @@ function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Rou
             )}
           </AnimatePresence>
  
-          <Button onClick={handleCommit} className="h-12 px-8 bg-primary text-primary-foreground hover:opacity-90 rounded-xl font-bold uppercase tracking-widest text-xs self-end transition-all active:scale-95">Establish Routine</Button>
+          <Button onClick={handleCommit} className="h-9 px-4 bg-primary text-primary-foreground hover:opacity-90 rounded-md font-bold uppercase tracking-widest text-[10px] w-full transition-all active:scale-95">Add Routine</Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-3">
         {routines.map(r => (
           <div key={r.id} className="p-6 bg-card border border-border/50 rounded-xl space-y-4 group hover:border-primary/20 transition-all shadow-sm relative overflow-hidden">
             <div className="flex items-center justify-between">
@@ -497,33 +497,32 @@ function TaskDumpTab({ activeTasks, completedTasks, showCompleted, setShowComple
 }) {
   const [newText, setNewText] = useState('');
   return (
-    <div className="max-w-2xl mx-auto p-12 space-y-12">
-      <div className="relative group">
-          <div className="relative flex items-center bg-card border border-border rounded-xl p-2 pl-6 shadow-sm overflow-hidden">
-               {!session?.user && (
-                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/40 backdrop-blur-[1px] cursor-pointer" onClick={() => document.getElementById('signin-trigger')?.click()}>
-                        <div className="flex items-center gap-2 px-3 py-1 bg-background/80 border border-border/50 rounded-full shadow-sm">
-                            <Package className="w-3 h-3 text-muted-foreground/60" />
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60">Sign in to Dump</span>
-                        </div>
+    <div className="max-w-2xl mx-auto p-8 space-y-8">
+      <div className="flex items-center bg-card/40 border border-border/50 rounded-lg p-1.5 pl-4 shadow-sm relative overflow-hidden">
+           {!session?.user && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/40 backdrop-blur-[1px] cursor-pointer" onClick={() => document.getElementById('signin-trigger')?.click()}>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-background/80 border border-border/50 rounded-full shadow-sm">
+                        <Package className="w-3 h-3 text-muted-foreground/50" />
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/50">Sign in to Dump</span>
                     </div>
-               )}
-              <Input 
-                  value={newText} 
-                  onChange={(e) => setNewText(e.target.value)} 
-                  onKeyDown={(e) => e.key === 'Enter' && newText.trim() && (onAddTask(newText), setNewText(''))} 
-                  placeholder="Record dump task..." 
-                  disabled={!session?.user}
-                  className="border-none bg-transparent focus-visible:ring-0 h-11 text-sm font-medium placeholder:opacity-40 disabled:text-muted-foreground/30" 
-              />
-              <Button 
-                  onClick={() => { if(newText.trim()) { onAddTask(newText); setNewText(''); } }} 
-                  disabled={!session?.user}
-                  className="bg-primary text-primary-foreground rounded-lg h-11 px-6 text-xs font-bold uppercase tracking-widest transition-all active:scale-95"
-              >
-                Add
-              </Button>
-          </div>
+                </div>
+           )}
+          <Input 
+              value={newText} 
+              onChange={(e) => setNewText(e.target.value)} 
+              onKeyDown={(e) => e.key === 'Enter' && newText.trim() && (onAddTask(newText), setNewText(''))} 
+              placeholder="Dump task..." 
+              disabled={!session?.user}
+              className="border-none bg-transparent focus-visible:ring-0 h-9 text-xs font-medium placeholder:text-muted-foreground/40 disabled:text-muted-foreground/30" 
+          />
+          <Button 
+              onClick={() => { if(newText.trim()) { onAddTask(newText); setNewText(''); } }} 
+              disabled={!session?.user}
+              size="sm"
+              className="bg-primary/10 text-primary hover:bg-primary/15 rounded-md h-9 px-4 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 shadow-none"
+          >
+            Add
+          </Button>
       </div>
       <div className="space-y-1">
         {activeTasks.map((t: any) => <TaskItem key={t.id} task={t} onToggle={onToggleTask} onDelete={onDeleteTask} />)}
