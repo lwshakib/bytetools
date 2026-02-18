@@ -1,8 +1,15 @@
+/**
+ * API route for synchronizing user-selected timezones in the World Clock tool.
+ * Handles fetching all active timezones and performing a full sync (replace all) operation.
+ */
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 
+/**
+ * Retrieves all saved timezones for the authenticated user.
+ */
 export async function GET() {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -20,6 +27,10 @@ export async function GET() {
     return NextResponse.json(timezones);
 }
 
+/**
+ * Synchronizes timezones by replacing the user's entire list with the current client-side state.
+ * Uses a transaction to ensure atomic deletion and recreation.
+ */
 export async function POST(req: Request) {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -31,7 +42,7 @@ export async function POST(req: Request) {
 
     const items = await req.json();
 
-    // For simplicity, we replace the user's timezones with the new list
+    // Perform a destructive sync: wipe existing selections and insert the new list.
     await prisma.$transaction([
         prisma.userTimezone.deleteMany({ where: { userId: session.user.id } }),
         prisma.userTimezone.createMany({
