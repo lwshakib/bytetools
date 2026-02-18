@@ -70,17 +70,34 @@ export default function TimezonesPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-5 3xl:grid-cols-6 gap-6 items-start pb-12">
             {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="aspect-[4/5] w-full bg-card/40 border border-border/50 rounded-3xl p-6 space-y-6">
-                        <div className="space-y-3">
-                            <Skeleton className="h-4 w-1/3" />
-                            <Skeleton className="h-8 w-2/3" />
-                        </div>
-                        <div className="flex-1 flex items-center justify-center">
-                            <Skeleton className="h-32 w-32 rounded-full" />
-                        </div>
-                        <div className="space-y-2">
-                            <Skeleton className="h-10 w-full rounded-xl" />
-                            <Skeleton className="h-4 w-1/2 mx-auto" />
+                    <div key={i} className="bg-card/40 border border-border/50 w-full h-[220px] rounded-xl flex flex-col p-0 overflow-hidden relative">
+                        <div className="flex-1 flex flex-col justify-between px-6 py-4">
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-1.5">
+                                    <Skeleton className="h-3 w-20" />
+                                    <Skeleton className="h-3 w-12" />
+                                </div>
+                                <div className="flex items-baseline gap-1.5 mt-2">
+                                    <Skeleton className="h-12 w-32" />
+                                    <Skeleton className="h-6 w-10" />
+                                </div>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <Skeleton className="h-4 w-12 rounded" />
+                                    <Skeleton className="h-3 w-20" />
+                                </div>
+                            </div>
+                            
+                            <div className="relative h-14 mt-auto">
+                                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-border/30" />
+                                <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-muted/40" />
+                                <div className="absolute bottom-0 inset-x-0 flex justify-between">
+                                    <Skeleton className="h-2 w-3" />
+                                    <Skeleton className="h-2 w-3" />
+                                    <Skeleton className="h-2 w-3" />
+                                    <Skeleton className="h-2 w-3" />
+                                    <Skeleton className="h-2 w-3" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 ))
