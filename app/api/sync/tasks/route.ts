@@ -1,8 +1,15 @@
+/**
+ * API route for synchronizing user tasks (Daily Planner & Pomodoro).
+ * Handles fetching all tasks and performing a full sync (replace all) operation.
+ */
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 
+/**
+ * Retrieves all saved tasks for the authenticated user.
+ */
 export async function GET() {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -19,6 +26,10 @@ export async function GET() {
     return NextResponse.json(tasks);
 }
 
+/**
+ * Synchronizes tasks by replacing the entire set of user tasks.
+ * Uses a transaction to ensure atomic deletion and recreation.
+ */
 export async function POST(req: Request) {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -30,6 +41,7 @@ export async function POST(req: Request) {
 
     const items = await req.json();
 
+    // Perform a destructive sync: wipe existing tasks and insert the current state from the client.
     await prisma.$transaction([
         prisma.task.deleteMany({ where: { userId: session.user.id } }),
         prisma.task.createMany({
