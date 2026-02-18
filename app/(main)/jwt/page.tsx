@@ -34,11 +34,20 @@ export default function JWTToolPage() {
   const { data: session } = useSession();
   const [secret, setSecret] = useState('');
   const [showSecret, setShowSecret] = useState(false);
+  /* Token payload state (JSON format) */
   const [payload, setPayload] = useState('{\n  "sub": "1234567890",\n  "name": "John Doe",\n  "iat": 1516239022\n}');
+  
+  /* The generated JWT string after encoding */
   const [encodedToken, setEncodedToken] = useState('');
+  
+  /* The input string for decoding an existing JWT */
   const [tokenToDecode, setTokenToDecode] = useState('');
+  
+  /* Structured data from the decoded header/payload */
   const [decodedHeader, setDecodedHeader] = useState<any>(null);
   const [decodedPayload, setDecodedPayload] = useState<any>(null);
+  
+  /* Validation status of the JWT's signature */
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [copiedType, setCopiedType] = useState<string | null>(null);
   

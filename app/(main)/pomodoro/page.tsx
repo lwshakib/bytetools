@@ -37,14 +37,22 @@ const TIMER_DEFAULTS = {
 };
 
 export default function PomodoroPage() {
+  /* The task list associated with the timer */
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskText, setNewTaskText] = useState('');
   const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
-
+  
+  /* Current timer mode and remaining time in seconds */
   const [mode, setMode] = useState<TimerMode>('focus');
   const [timeLeft, setTimeLeft] = useState(TIMER_DEFAULTS.focus);
+  
+  /* Operational state of the timer */
   const [isRunning, setIsRunning] = useState(false);
+  
+  /* Counter for completed focus sessions in the current period */
   const [sessionsToday, setSessionsToday] = useState(0);
+  
+  /* Reference holder for the timer interval */
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {

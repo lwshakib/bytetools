@@ -19,6 +19,11 @@ interface BMIResult {
   description: string;
 }
 
+/**
+ * Utility function to determine BMI category and associated styling.
+ * @param bmi - The calculated Body Mass Index value.
+ * @returns An object containing category details, colors, and descriptions.
+ */
 const getBMICategory = (bmi: number): BMIResult => {
   if (bmi < 18.5) {
     return {
@@ -56,30 +61,44 @@ const getBMICategory = (bmi: number): BMIResult => {
 };
 
 export default function BMICalculatorPage() {
+  /* State to track measurement unit (Metric vs Imperial) */
   const [unit, setUnit] = useState<'metric' | 'imperial'>('metric');
+  
+  /* State for Metric inputs */
   const [height, setHeight] = useState('170');
   const [weight, setWeight] = useState('70');
+  
+  /* State for Imperial inputs */
   const [heightFeet, setHeightFeet] = useState('5');
   const [heightInches, setHeightInches] = useState('7');
   const [weightPounds, setWeightPounds] = useState('154');
+  
+  /* State to store the final BMI calculation result */
   const [bmiResult, setBmiResult] = useState<BMIResult | null>(null);
 
+  /**
+   * Effect hook to recalculate BMI whenever any input changes.
+   */
   useEffect(() => {
     let bmi = 0;
     if (unit === 'metric') {
+      /* BMI Formula (Metric): kg / m^2 */
       const heightM = parseFloat(height) / 100;
       const weightKg = parseFloat(weight);
       if (heightM > 0 && weightKg > 0) {
         bmi = weightKg / (heightM * heightM);
       }
     } else {
+      /* BMI Formula (Imperial): (lbs / inches^2) * 703 */
       const heightInchesTotal = parseFloat(heightFeet) * 12 + parseFloat(heightInches);
       const weightLbs = parseFloat(weightPounds);
       if (heightInchesTotal > 0 && weightLbs > 0) {
         bmi = (weightLbs / (heightInchesTotal * heightInchesTotal)) * 703;
       }
     }
+    
     if (bmi > 0) {
+      /* Update the result state with category breakdown */
       setBmiResult(getBMICategory(bmi));
     } else {
       setBmiResult(null);
@@ -90,7 +109,9 @@ export default function BMICalculatorPage() {
     <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">
       <div className="flex-1 flex flex-col p-6 md:p-12">
         <div className="max-w-5xl mx-auto w-full flex flex-col items-center">
-          {/* Header Section */}
+          {/* 
+              Header Section: Title and branding for the BMI Analysis tool.
+          */}
           <div className="flex flex-col items-center text-center space-y-4 mb-20 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
@@ -104,6 +125,10 @@ export default function BMICalculatorPage() {
           </div>
 
           {/* Main Calculator card */}
+          {/* 
+              Main Calculator card: Container for measurement inputs. 
+              Features a blurred background glow for modern SaaS aesthetics.
+          */}
           <div className="relative mb-24 w-full">
             <div className="absolute -inset-20 bg-primary/5 blur-[120px] rounded-full pointer-events-none opacity-50" />
             <motion.div 
@@ -194,12 +219,16 @@ export default function BMICalculatorPage() {
                   </TabsContent>
                 </Tabs>
 
+                {/* 
+                    Results Display: Shown when BMI is successfully calculated.
+                */}
                 {bmiResult && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-10 pt-10 border-t border-border/50"
                   >
+                    {/* Numeric and Categorical Analysis */}
                     <div className="text-center space-y-4">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30">Result Analysis</span>
                       <div className="flex items-baseline justify-center gap-3">
@@ -224,6 +253,7 @@ export default function BMICalculatorPage() {
                       </div>
                     </div>
 
+                    {/* Visual Slider: Shows BMI position on a scale */}
                     <div className="space-y-4">
                       <div className="relative h-1.5 bg-muted/20 rounded-full overflow-hidden">
                         <div className="absolute inset-0 flex">

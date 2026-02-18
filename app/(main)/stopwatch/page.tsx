@@ -20,10 +20,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export default function StopwatchPage() {
+  /* Total elapsed time in milliseconds */
   const [time, setTime] = useState(0);
+  
+  /* Running state of the timer */
   const [isRunning, setIsRunning] = useState(false);
+  
+  /* List of captured lap durations */
   const [laps, setLaps] = useState<number[]>([]);
+  
+  /* Fullscreen focus mode toggle */
   const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  /* References for precise frame-based timing */
   const startTimeRef = useRef<number>(0);
   const requestRef = useRef<number | undefined>(undefined);
 

@@ -29,13 +29,20 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PasswordGeneratorPage() {
   const { data: session } = useSession();
+  /* The current generated password string */
   const [password, setPassword] = useState('');
+  
+  /* Password configuration settings */
   const [length, setLength] = useState(16);
   const [includeUppercase, setIncludeUppercase] = useState(true);
   const [includeLowercase, setIncludeLowercase] = useState(true);
   const [includeNumbers, setIncludeNumbers] = useState(true);
   const [includeSymbols, setIncludeSymbols] = useState(true);
+  
+  /* Visual state for the copy action feedback */
   const [copied, setCopied] = useState(false);
+  
+  /* Strength analysis object */
   const [strength, setStrength] = useState({ score: 0, label: 'Weak', color: 'text-red-500', bg: 'bg-red-500' });
   
   const [savedPasswords, setSavedPasswords] = useState<any[]>([]);

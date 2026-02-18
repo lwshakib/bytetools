@@ -52,11 +52,22 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DailyPlannerPage() {
+  /* Main collection of user tasks across all categories */
   const [tasks, setTasks] = useState<Task[]>([]);
+  
+  /* Recurring routines that generate tasks on specific days */
   const [routines, setRoutines] = useState<Routine[]>([]);
+  
+  /* Current view of the UI ('daily' planner, 'routine' management, or 'dump') */
   const [activeTab, setActiveTab] = useState('daily');
+  
+  /* The anchor date for the daily planner view (usually startOfToday) */
   const [baseDate, setBaseDate] = useState<Date>(startOfToday());
+  
+  /* Toggle for showing completed tasks in the 'dump' view */
   const [showCompletedDump, setShowCompletedDump] = useState(false);
+  
+  /* Loading state for DB synchronization */
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: session } = useSession();
@@ -407,15 +418,21 @@ function TaskItem({ task, onToggle, onDelete, isPending = false }: { task: Task;
 }
 
 function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Routine[]; onAddRoutine: (t: string, f: Routine['frequency'], days: number[], date: number | null) => void; onDeleteRoutine: (id: string) => void; }) {
+  // State for the new routine's text input
   const [newText, setNewText] = useState('');
+  // State for the selected frequency of the new routine (daily, weekly, bi-weekly, monthly)
   const [newFreq, setNewFreq] = useState<Routine['frequency']>('daily');
+  // State to store selected days for weekly/bi-weekly routines (0 for Sunday, 6 for Saturday)
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  // State to store the selected date for monthly routines
   const [selectedDate, setSelectedDate] = useState<number>(1);
 
+  // Toggles the selection of a day for weekly/bi-weekly routines
   const toggleDay = (day: number) => {
     setSelectedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
   };
 
+  // Handles the submission of a new routine
   const handleCommit = () => {
     if (!newText.trim()) return;
     onAddRoutine(newText, newFreq, selectedDays, newFreq === 'monthly' ? selectedDate : null);

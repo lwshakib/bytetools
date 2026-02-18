@@ -13,6 +13,9 @@ import {
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
+/**
+ * Static list of supported currencies with their codes, names, and symbols.
+ */
 const CURRENCIES = [
   { code: 'USD', name: 'US Dollar', symbol: '$' },
   { code: 'EUR', name: 'Euro', symbol: '€' },
@@ -36,6 +39,9 @@ const CURRENCIES = [
   { code: 'RUB', name: 'Russian Ruble', symbol: '₽' },
 ];
 
+/**
+ * Mock exchange rate mapping for demonstration.
+ */
 const getExchangeRate = (from: string, to: string): number => {
   const rates: Record<string, Record<string, number>> = {
     USD: { EUR: 0.92, GBP: 0.79, JPY: 149.50, AUD: 1.52, CAD: 1.35, CHF: 0.88, CNY: 7.24, INR: 83.12, SGD: 1.34, BRL: 4.95, ZAR: 18.65, MXN: 17.12, KRW: 1312.50, NZD: 1.67, SEK: 10.68, NOK: 10.95, DKK: 6.88, PLN: 4.02, RUB: 91.25 },
@@ -49,12 +55,25 @@ const getExchangeRate = (from: string, to: string): number => {
 };
 
 export default function CurrencyConverterPage() {
+  /* Amount to be converted */
   const [amount, setAmount] = useState('1');
+  
+  /* Selected source currency */
   const [fromCurrency, setFromCurrency] = useState('USD');
+  
+  /* Selected target currency */
   const [toCurrency, setToCurrency] = useState('EUR');
+  
+  /* The result of the conversion */
   const [convertedAmount, setConvertedAmount] = useState('0.92');
+  
+  /* The current exchange rate used */
   const [rate, setRate] = useState(0.92);
 
+  /**
+   * Effect hook to update the conversion result whenever 
+   * amount or currencies pulse/change.
+   */
   useEffect(() => {
     const rate = getExchangeRate(fromCurrency, toCurrency);
     setRate(rate);
@@ -62,6 +81,9 @@ export default function CurrencyConverterPage() {
     setConvertedAmount((numAmount * rate).toFixed(2));
   }, [amount, fromCurrency, toCurrency]);
 
+  /**
+   * Swaps the 'From' and 'To' currencies.
+   */
   const handleSwap = () => {
     setFromCurrency(toCurrency);
     setToCurrency(fromCurrency);
@@ -80,7 +102,7 @@ export default function CurrencyConverterPage() {
     <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">
       <div className="flex-1 flex flex-col p-6 md:p-12">
         <div className="max-w-5xl mx-auto w-full flex flex-col items-center">
-          {/* Header Section */}
+          {/* Header: Title and branding for the Currency Exchange tool. */}
           <div className="flex flex-col items-center text-center space-y-4 mb-20 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
@@ -94,6 +116,7 @@ export default function CurrencyConverterPage() {
           </div>
 
           {/* Main Converter card */}
+          {/* Main Converter Card: The core interface for currency interaction. */}
           <div className="relative mb-24 w-full">
             <div className="absolute -inset-20 bg-primary/5 blur-[120px] rounded-full pointer-events-none opacity-50" />
             <motion.div 
@@ -148,7 +171,10 @@ export default function CurrencyConverterPage() {
                   </Button>
                 </div>
 
-                {/* Target Section */}
+                {/* 
+                    Target Section: Displays the result and allows 
+                    selecting the destination currency. 
+                */}
                 <div className="space-y-6">
                   <div className="flex justify-between items-center px-1">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">To</Label>

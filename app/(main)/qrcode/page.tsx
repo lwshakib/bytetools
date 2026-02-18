@@ -36,18 +36,28 @@ type QRType = 'url' | 'text' | 'email' | 'wifi';
 
 export default function QRCodePage() {
   const { data: session } = useSession();
+  /* The content to be encoded into the QR code */
   const [value, setValue] = useState('https://bytetools.app');
+  
+  /* Current type of content (URL, Text, Email, WiFi) */
   const [qrType, setQrType] = useState<QRType>('url');
+  
+  /* Visual configuration for the QR code */
   const [fgColor, setFgColor] = useState('#000000');
   const [size, setSize] = useState(256);
   const [level, setLevel] = useState<'L' | 'M' | 'Q' | 'H'>('H');
+  
+  /* State for saving QR configurations to the cloud vault */
   const [qrName, setQrName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [savedQrCodes, setSavedQrCodes] = useState<any[]>([]);
   const [copyingValue, setCopyingValue] = useState(false);
   
+  /* Scanning logic states */
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  
+  /* Reference for the HTML5 QR Scanner instance */
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const fetchSavedQrCodes = async () => {

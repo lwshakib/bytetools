@@ -17,10 +17,17 @@ const choices: { id: Choice; label: string; icon: string }[] = [
 ];
 
 export default function RockPaperScissorsPage() {
+  /* Player and AI selection states */
   const [userChoice, setUserChoice] = useState<Choice | null>(null);
   const [computerChoice, setComputerChoice] = useState<Choice | null>(null);
+  
+  /* Outcome of the current round */
   const [result, setResult] = useState<'win' | 'lose' | 'draw' | null>(null);
+  
+  /* Persistent leaderboard statistics */
   const [scores, setScores] = useState({ user: 0, computer: 0 });
+  
+  /* Operational state during AI calculation delay */
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {

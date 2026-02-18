@@ -33,20 +33,37 @@ interface AgeBreakdown {
 }
 
 export default function AgeCalculatorPage() {
+  /* State to track the birth date and time selected by the user */
   const [birthDate, setBirthDate] = useState<Date | undefined>(new Date(2000, 0, 1, 0, 0));
+  
+  /* State to track the comparison date (defaults to current time) */
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  
+  /* State to store the calculated breakdown of age in various units */
   const [ageBreakdown, setAgeBreakdown] = useState<AgeBreakdown | null>(null);
 
+  /**
+   * Effect hook to recalculate the age breakdown whenever 
+   * birth date or current date changes.
+   */
   useEffect(() => {
     if (birthDate) {
       const now = currentDate;
       const breakdown: AgeBreakdown = {
+        /* Calculate years between dates */
         years: differenceInYears(now, birthDate),
+        /* Calculate remaining months after years */
         months: differenceInMonths(now, birthDate) % 12,
+        /* Calculate remaining days after months */
         days: differenceInDays(now, birthDate) % 30,
+        /* Calculate remaining hours after days */
         hours: differenceInHours(now, birthDate) % 24,
+        /* Calculate remaining minutes after hours */
         minutes: differenceInMinutes(now, birthDate) % 60,
+        /* Calculate remaining seconds after minutes */
         seconds: differenceInSeconds(now, birthDate) % 60,
+        
+        /* Total calculations in single units */
         totalDays: differenceInDays(now, birthDate),
         totalHours: differenceInHours(now, birthDate),
         totalMinutes: differenceInMinutes(now, birthDate),
@@ -64,7 +81,10 @@ export default function AgeCalculatorPage() {
     <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">
       <div className="flex-1 flex flex-col p-6 md:p-12">
         <div className="max-w-5xl mx-auto w-full flex flex-col items-center">
-          {/* Header Section */}
+          {/* 
+              Header Section: Branding and title for the Chronological 
+              Decomposition (Age Calculator) tool.
+          */}
           <div className="flex flex-col items-center text-center space-y-4 mb-20 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
@@ -78,6 +98,10 @@ export default function AgeCalculatorPage() {
           </div>
 
           {/* Main Calculator card */}
+          {/* 
+              Main Calculator card: Container for input controls and results. 
+              Features a blurred background glow for premium aesthetic.
+          */}
           <div className="relative mb-24 w-full">
             <div className="absolute -inset-20 bg-primary/5 blur-[120px] rounded-full pointer-events-none opacity-50" />
             <motion.div 
@@ -107,12 +131,16 @@ export default function AgeCalculatorPage() {
                   </div>
                 </div>
 
+                {/* 
+                    Results Display: Shown once a birth date is selected.
+                */}
                 {ageBreakdown && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-12"
                   >
+                    {/* Primary Age Result (Years) */}
                     <div className="text-center space-y-4">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30">Lived Duration</span>
                       <div className="flex items-baseline justify-center gap-3">
@@ -123,6 +151,7 @@ export default function AgeCalculatorPage() {
                       </div>
                     </div>
 
+                    {/* Secondary Units breakdown (Months, Days, etc.) */}
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                       {[
                         { label: 'Months', value: ageBreakdown.months },
@@ -138,6 +167,7 @@ export default function AgeCalculatorPage() {
                       ))}
                     </div>
 
+                    {/* Global Statistics: Cumulative counts for days, hours, etc. */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-10 border-t border-border/50">
                       {[
                         { label: 'Total Days', value: ageBreakdown.totalDays.toLocaleString(), icon: CalendarIcon },
