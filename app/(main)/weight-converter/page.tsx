@@ -49,9 +49,14 @@ const convertWeight = (value: number, from: string, to: string): number => {
 };
 
 export default function WeightConverterPage() {
+  /* The numerical string input for the source unit */
   const [amount, setAmount] = useState('1');
+  
+  /* The unit codes for conversion (e.g., 'kg', 'lb') */
   const [fromUnit, setFromUnit] = useState('kg');
   const [toUnit, setToUnit] = useState('lb');
+  
+  /* The calculated result of the weight transformation */
   const [convertedAmount, setConvertedAmount] = useState('2.20462');
 
   useEffect(() => {

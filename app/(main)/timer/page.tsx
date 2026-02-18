@@ -49,19 +49,32 @@ const DEFAULT_PRESETS: Preset[] = [
 export default function TimerPage() {
   const { data: session } = useSession();
 
+  /* Individual time units for input (Hours, Minutes, Seconds) */
   const [hours, setHours] = useState('00');
   const [minutes, setMinutes] = useState('10');
   const [seconds, setSeconds] = useState('00');
+  
+  /* The total remaining time in seconds */
   const [timeLeft, setTimeLeft] = useState(600);
+  
+  /* Operational state of the countdown */
   const [isRunning, setIsRunning] = useState(false);
+  
+  /* UI mode: true for inputting time, false for viewing countdown */
   const [isEditing, setIsEditing] = useState(true);
+  
+  /* User-defined and cloud-synced timer configurations */
   const [customPresets, setCustomPresets] = useState<Preset[]>([]);
+  
+  /* Dialog state for creating new presets */
   const [isCreatingPreset, setIsCreatingPreset] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
   const [newPresetH, setNewPresetH] = useState('00');
   const [newPresetM, setNewPresetM] = useState('10');
   const [newPresetS, setNewPresetS] = useState('00');
   const [activePresetId, setActivePresetId] = useState<string | null>('2');
+  
+  /* Local reference for the countdown interval timer */
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {

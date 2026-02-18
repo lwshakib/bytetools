@@ -23,11 +23,20 @@ type Player = 'X' | 'O' | null;
 type GameMode = 'PvP' | 'PvE';
 
 export default function TicTacToePage() {
+  /* Matrix representation of the game board */
   const [board, setBoard] = useState<Player[]>(Array(9).fill(null));
+  
+  /* Turn management (true for X, false for O) */
   const [isXNext, setIsXNext] = useState(true);
+  
+  /* Game outcome and winning visual marks */
   const [winner, setWinner] = useState<Player | 'Draw'>(null);
   const [winningLine, setWinningLine] = useState<number[] | null>(null);
+  
+  /* Mode selection (vs Player or vs AI) */
   const [gameMode, setGameMode] = useState<GameMode>('PvE');
+  
+  /* Local session record */
   const [scores, setScores] = useState({ X: 0, O: 0, Draws: 0 });
 
   const calculateWinner = useCallback((squares: Player[]) => {

@@ -14,8 +14,13 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TimezonesPage() {
+  /* Selected timezones managed by the global store */
   const { selectedTimezones, setBaseTime, setAllTimezones, baseTime, timeOffset } = useTimezoneStore();
+  
+  /* Authentication session data */
   const { data: session } = useSession();
+  
+  /* Loading state for fetching data from the cloud */
   const [isLoading, setIsLoading] = useState(false);
 
   // Dynamic Time Tick removed to improve slider performance as requested
