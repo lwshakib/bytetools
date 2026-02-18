@@ -15,14 +15,7 @@ export default function TimezonesPage() {
   const { selectedTimezones, setBaseTime, setAllTimezones, baseTime, timeOffset } = useTimezoneStore();
   const { data: session } = useSession();
 
-  // Dynamic Time Tick - Always updates based on the current system time + user offset
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBaseTime(Date.now() + timeOffset);
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [timeOffset, setBaseTime]);
+  // Dynamic Time Tick removed to improve slider performance as requested
 
   // Sync with DB
   useEffect(() => {

@@ -26,10 +26,14 @@ interface TimezoneCardProps {
 }
 
 export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, timezone }) => {
-  const { baseTime, setTimeOffset, resetTime, removeTimezone, updateTimezone, selectedTimezones, selectedId, setSelectedId } = useTimezoneStore();
+  const { baseTime, setTimeOffset, resetTime, removeTimezone, updateTimezone, selectedTimezones, selectedId, setSelectedId, timeOffset } = useTimezoneStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isClockOpen, setIsClockOpen] = useState(false);
   const [liveNow, setLiveNow] = useState(new Date());
+  
+  // Local state for smooth slider interaction
+  const [localMinutes, setLocalMinutes] = useState<number | null>(null);
+  
   const cardRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLInputElement>(null);
 
@@ -61,26 +65,40 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     };
   }, [isEditing]);
 
-  // Calculate zoned time
-  const zonedDate = useMemo(() => {
-    return toZonedTime(new Date(baseTime), timezone);
-  }, [baseTime, timezone]);
-
-  const timeStr = format(zonedDate, 'hh:mm:ss');
-  const amPm = format(zonedDate, 'a').toUpperCase();
-  const offset = format(zonedDate, 'xxx');
-  const dateStr = format(zonedDate, 'MMM dd');
-
-  const minutesInDay = (zonedDate.getHours() * 60) + zonedDate.getMinutes();
-
-  const handleSliderChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newMinutes = parseInt(e.target.value, 10);
-    const deltaMinutes = newMinutes - minutesInDay;
-    if (deltaMinutes !== 0) {
-      const newBaseTime = baseTime + deltaMinutes * 60000;
-      setTimeOffset(newBaseTime - Date.now());
+  // Use either the store's baseTime or the local override from the slider
+  const displayDate = useMemo(() => {
+    const date = new Date(baseTime);
+    if (localMinutes !== null) {
+      date.setHours(Math.floor(localMinutes / 60));
+      date.setMinutes(localMinutes % 60);
+      date.setSeconds(0);
     }
-  }, [baseTime, minutesInDay, setTimeOffset]);
+    return toZonedTime(date, timezone);
+  }, [baseTime, timezone, localMinutes]);
+
+  const timeStr = format(displayDate, 'hh:mm');
+  const amPm = format(displayDate, 'a').toUpperCase();
+  const offset = format(displayDate, 'xxx');
+  const dateStr = format(displayDate, 'MMM dd');
+
+  const minutesInDay = (displayDate.getHours() * 60) + displayDate.getMinutes();
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalMinutes(parseInt(e.target.value, 10));
+  };
+
+  const handleSliderCommit = () => {
+    if (localMinutes !== null) {
+      // Calculate how many minutes we are away from the REAL "now"
+      const now = new Date();
+      const nowZoned = toZonedTime(now, timezone);
+      const nowMinutes = (nowZoned.getHours() * 60) + nowZoned.getMinutes();
+      
+      const deltaMinutes = localMinutes - nowMinutes;
+      setTimeOffset(deltaMinutes * 60000);
+      setLocalMinutes(null);
+    }
+  };
 
   const handleSelect = (newCity: CityData) => {
     updateTimezone(id, {
@@ -91,7 +109,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     setIsEditing(false);
   };
 
-  // Memoize ticks to prevent re-render on every tick
+  // Memoize ticks for performance
   const ticks = useMemo(() => {
     return Array.from({ length: 97 }, (_, i) => {
       const tickMinute = i * 15;
@@ -151,11 +169,6 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
                 <h3 className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest truncate">
                   {city}
                 </h3>
-                {id === 'local' && (
-                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[8px] font-black text-blue-500 uppercase tracking-widest">
-                        Home
-                    </span>
-                )}
                 {country && (
                     <span className="text-muted-foreground/30 text-[10px]">•</span>
                 )}
@@ -256,6 +269,8 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
               step="1"
               value={minutesInDay}
               onChange={handleSliderChange}
+              onMouseUp={handleSliderCommit}
+              onTouchEnd={handleSliderCommit}
               className="absolute inset-x-0 top-0 bottom-6 w-full opacity-0 cursor-ew-resize z-20"
             />
             
