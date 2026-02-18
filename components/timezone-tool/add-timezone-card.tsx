@@ -46,27 +46,26 @@ export const AddTimezoneCard = () => {
       className={cn(
         "relative bg-card border-border text-foreground w-full h-[220px] overflow-hidden transition-all duration-300 p-0 m-0",
         !isSearching && session?.user && "cursor-pointer hover:bg-accent/50 hover:border-accent border-dashed flex flex-col items-center justify-center text-center",
-        !isSearching && !session?.user && "border-dashed flex flex-col items-center justify-center text-center"
+        !session?.user && "border-dashed flex flex-col items-center justify-center text-center"
       )}
-      onClick={() => !isSearching && session?.user && setIsSearching(true)}
+      onClick={() => isSearching || !session?.user ? null : setIsSearching(true)}
     >
-      {!session?.user && (
+      {!session?.user ? (
         <div 
-          className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[2px] cursor-pointer group/auth"
+          className="absolute inset-0 z-20 flex items-center justify-center bg-background/5 cursor-pointer group/auth"
           onClick={() => document.getElementById('signin-trigger')?.click()}
         >
           <div className="flex flex-col items-center gap-4 px-6 text-center transition-transform group-hover/auth:scale-105">
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg">
-                <Globe className="w-6 h-6 text-blue-500" />
+            <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center border border-border shadow-sm">
+                <Globe className="w-6 h-6 text-primary" />
             </div>
             <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Auth Required</p>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">Sign in to add custom timezones to your global grid.</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">Sign in Required</p>
+                <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest leading-relaxed">Auth required to add custom timezones to your global grid.</p>
             </div>
           </div>
         </div>
-      )}
-      {!isSearching ? (
+      ) : !isSearching ? (
         <>
           <div className="bg-accent p-4 rounded-full mb-2 transform transition-transform group-hover:scale-110">
             <Plus className="h-8 w-8 text-muted-foreground" />
