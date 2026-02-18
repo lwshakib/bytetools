@@ -14,18 +14,37 @@ import {
   Smartphone, 
   Monitor,
   CheckCircle2,
+  ChevronRight,
+  LogOut,
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 /**
  * Account Settings page providing management for profile details, 
  * security credentials, and active sessions.
  */
 export default function AccountPage() {
+  const router = useRouter();
   const [name, setName] = useState("Professor");
   const [email, setEmail] = useState("professor@bytetools.com");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const sessions = [
     { id: 1, device: "MacBook Pro", browser: "Chrome", location: "Dhaka, Bangladesh", status: "Active now", icon: Monitor },
@@ -42,6 +61,23 @@ export default function AccountPage() {
     toast.success("Password updated successfully.");
   };
 
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      const { error } = await authClient.deleteUser();
+      if (error) {
+        toast.error(error.message || "Failed to delete account");
+      } else {
+        toast.success("Account deleted successfully");
+        router.push("/sign-in");
+      }
+    } catch (err) {
+      toast.error("An error occurred while deleting your account");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="flex-1 overflow-y-auto bg-background/50">
       <div className="max-w-4xl mx-auto py-12 px-6">
@@ -51,127 +87,167 @@ export default function AccountPage() {
           <p className="text-muted-foreground mt-2">Manage your account settings and set your email preferences.</p>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-10">
+        <Tabs defaultValue="profile" className="flex flex-col md:flex-row gap-10">
           {/* Navigation Sidebar */}
-          <aside className="w-full md:w-64 space-y-1">
-            <Button variant="ghost" className="w-full justify-start font-medium text-primary bg-primary/5">
-              <User className="w-4 h-4 mr-2" /> Profile
-            </Button>
-            <Button variant="ghost" className="w-full justify-start font-medium text-muted-foreground hover:text-foreground">
-              <Lock className="w-4 h-4 mr-2" /> Security
-            </Button>
-            <Button variant="ghost" className="w-full justify-start font-medium text-muted-foreground hover:text-foreground">
-              <Shield className="w-4 h-4 mr-2" /> Sessions
-            </Button>
+          <aside className="w-full md:w-64">
+            <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1">
+              <TabsTrigger 
+                value="profile" 
+                className="w-full justify-start px-4 py-2 h-10 font-medium data-[state=active]:bg-primary/5 data-[state=active]:text-primary text-muted-foreground hover:text-foreground transition-all border-none shadow-none bg-transparent"
+              >
+                <User className="w-4 h-4 mr-2" /> Profile
+              </TabsTrigger>
+              <TabsTrigger 
+                value="security" 
+                className="w-full justify-start px-4 py-2 h-10 font-medium data-[state=active]:bg-primary/5 data-[state=active]:text-primary text-muted-foreground hover:text-foreground transition-all border-none shadow-none bg-transparent"
+              >
+                <Lock className="w-4 h-4 mr-2" /> Security
+              </TabsTrigger>
+              <TabsTrigger 
+                value="sessions" 
+                className="w-full justify-start px-4 py-2 h-10 font-medium data-[state=active]:bg-primary/5 data-[state=active]:text-primary text-muted-foreground hover:text-foreground transition-all border-none shadow-none bg-transparent"
+              >
+                <Shield className="w-4 h-4 mr-2" /> Sessions
+              </TabsTrigger>
+            </TabsList>
+            
             <div className="pt-4 mt-4 border-t border-border">
-              <Button variant="ghost" className="w-full justify-start font-medium text-red-500 hover:text-red-600 hover:bg-red-50">
-                <Trash2 className="w-4 h-4 mr-2" /> Delete Account
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start font-medium text-red-500 hover:text-red-600 hover:bg-red-50">
+                    <Trash2 className="w-4 h-4 mr-2" /> Delete Account
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                       <AlertTriangle className="w-5 h-5 text-red-500" />
+                       Confirm Account Deletion
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action is permanent. All your data, including saved tools, configurations, and vault items, will be permanently removed. This cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteAccount}
+                      disabled={isDeleting}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {isDeleting ? "Deleting..." : "Delete Permanently"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </aside>
 
           {/* Main Content Sections */}
-          <div className="flex-1 space-y-8">
-            {/* Profile Information */}
-            <Card className="shadow-sm border-border/60">
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>Update your personal details and contact information.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input 
-                      id="name"
-                      value={name} 
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Your Name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input 
-                      id="email"
-                      type="email" 
-                      value={email} 
-                      readOnly
-                      className="bg-muted/30"
-                    />
-                    <p className="text-[11px] text-muted-foreground">Email changes require re-verification.</p>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="bg-muted/20 border-t flex justify-end py-3">
-                <Button onClick={handleUpdateProfile} size="sm">Save Changes</Button>
-              </CardFooter>
-            </Card>
-
-            {/* Security Section */}
-            <Card className="shadow-sm border-border/60">
-              <CardHeader>
-                <CardTitle>Security</CardTitle>
-                <CardDescription>Manage your password and security settings.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg border border-primary/10">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-full text-primary">
-                      <CheckCircle2 className="w-5 h-5" />
+          <div className="flex-1">
+            <TabsContent value="profile" className="m-0 focus-visible:ring-0">
+              <Card className="shadow-sm border-border/60">
+                <CardHeader>
+                  <CardTitle>Profile Information</CardTitle>
+                  <CardDescription>Update your personal details and contact information.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input 
+                        id="name"
+                        value={name} 
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Your Name"
+                      />
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">Two-factor authentication</p>
-                      <p className="text-xs text-muted-foreground">Your account is secured with two-factor authentication.</p>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input 
+                        id="email"
+                        type="email" 
+                        value={email} 
+                        readOnly
+                        className="bg-muted/30"
+                      />
+                      <p className="text-[11px] text-muted-foreground">Email changes require re-verification.</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">Configure</Button>
-                </div>
+                </CardContent>
+                <CardFooter className="bg-muted/20 border-t flex justify-end py-3">
+                  <Button onClick={handleUpdateProfile} size="sm">Save Changes</Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password">New Password</Label>
-                    <Input id="new-password" type="password" placeholder="••••••••" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input id="confirm-password" type="password" placeholder="••••••••" />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="bg-muted/20 border-t flex justify-end py-3">
-                <Button variant="outline" size="sm" onClick={handleChangePassword}>Update Password</Button>
-              </CardFooter>
-            </Card>
-
-            {/* Active Sessions */}
-            <Card className="shadow-sm border-border/60">
-              <CardHeader>
-                <CardTitle>Active Sessions</CardTitle>
-                <CardDescription>View and manage your active login sessions.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {sessions.map((session) => (
-                  <div key={session.id} className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-background">
-                    <div className="flex items-center gap-4">
-                      <div className="p-2.5 bg-muted rounded-md text-muted-foreground">
-                        <session.icon className="w-5 h-5" />
+            <TabsContent value="security" className="m-0 focus-visible:ring-0">
+              <Card className="shadow-sm border-border/60">
+                <CardHeader>
+                  <CardTitle>Security</CardTitle>
+                  <CardDescription>Manage your password and security settings.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg border border-primary/10">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-full text-primary">
+                        <CheckCircle2 className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{session.device} • {session.browser}</p>
-                        <p className="text-xs text-muted-foreground">{session.location} • {session.status}</p>
+                        <p className="text-sm font-medium">Two-factor authentication</p>
+                        <p className="text-xs text-muted-foreground">Your account is secured with two-factor authentication.</p>
                       </div>
                     </div>
-                    {session.id !== 1 && (
-                      <Button variant="ghost" size="sm" className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50">
-                        Revoke session
-                      </Button>
-                    )}
+                    <Button variant="outline" size="sm">Configure</Button>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="new-password">New Password</Label>
+                      <Input id="new-password" type="password" placeholder="••••••••" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password">Confirm Password</Label>
+                      <Input id="confirm-password" type="password" placeholder="••••••••" />
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="bg-muted/20 border-t flex justify-end py-3">
+                  <Button variant="outline" size="sm" onClick={handleChangePassword}>Update Password</Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="sessions" className="m-0 focus-visible:ring-0">
+              <Card className="shadow-sm border-border/60">
+                <CardHeader>
+                  <CardTitle>Active Sessions</CardTitle>
+                  <CardDescription>View and manage your active login sessions.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {sessions.map((session) => (
+                    <div key={session.id} className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-background">
+                      <div className="flex items-center gap-4">
+                        <div className="p-2.5 bg-muted rounded-md text-muted-foreground">
+                          <session.icon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{session.device} • {session.browser}</p>
+                          <p className="text-xs text-muted-foreground">{session.location} • {session.status}</p>
+                        </div>
+                      </div>
+                      {session.id !== 1 && (
+                        <Button variant="ghost" size="sm" className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50">
+                          Revoke session
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </TabsContent>
           </div>
-        </div>
+        </Tabs>
       </div>
     </div>
   );

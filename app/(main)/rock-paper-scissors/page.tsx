@@ -64,7 +64,7 @@ export default function RockPaperScissorsPage() {
   };
 
   const resetGame = () => { setUserChoice(null); setComputerChoice(null); setResult(null); };
-  const resetScores = () => { setScores({ user: 0, computer: 0 }); toast.success("Memory Purged"); };
+  const resetScores = () => { setScores({ user: 0, computer: 0 }); toast.success("Scores have been reset"); };
 
   return (
     <div className="flex flex-1 flex-col p-8 md:p-12 lg:p-20 items-center overflow-y-auto">
@@ -96,7 +96,7 @@ export default function RockPaperScissorsPage() {
                                 className="flex flex-col items-center text-center space-y-4 opacity-10"
                             >
                                 <Zap className="w-12 h-12" />
-                                <span className="text-[10px] font-bold uppercase tracking-[0.6em]">Awaiting Input</span>
+                                <span className="text-[10px] font-bold uppercase tracking-[0.6em]">Choose your weapon</span>
                             </motion.div>
                         ) : (
                             <motion.div
@@ -138,7 +138,7 @@ export default function RockPaperScissorsPage() {
                                             "bg-muted/40 border-border/50 text-muted-foreground"
                                         )}
                                     >
-                                        {result === 'win' ? 'Target Eliminated' : result === 'lose' ? 'System Failure' : 'Network Collision'}
+                                {result === 'win' ? 'You Won!' : result === 'lose' ? 'You Lost!' : 'It\'s a Draw!'}
                                     </motion.div>
                                 )}
                             </motion.div>
@@ -171,10 +171,10 @@ export default function RockPaperScissorsPage() {
 
         <div className="flex items-center justify-center gap-6 pt-12">
             <Button variant="ghost" onClick={resetGame} disabled={!userChoice || isPlaying} className="h-10 px-6 rounded-lg text-[9px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 hover:bg-muted gap-2">
-                <RotateCcw className="w-3 h-3" /> Purge Arena
+                <RotateCcw className="w-3 h-3" /> Reset Round
             </Button>
             <Button variant="ghost" onClick={resetScores} className="h-10 px-6 rounded-lg text-[9px] font-bold uppercase tracking-widest text-red-500/40 hover:text-red-500 hover:bg-red-500/5 gap-2">
-                <Activity className="w-3 h-3" /> Zero Metrics
+                <Activity className="w-3 h-3" /> Reset Scores
             </Button>
         </div>
       </div>
