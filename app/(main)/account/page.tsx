@@ -139,7 +139,26 @@ export default function AccountPage() {
             <NavBtn active={activeNav === "security"} onClick={() => scrollToSection("security")} icon={Lock} label="Security" />
             <NavBtn active={activeNav === "sessions"} onClick={() => scrollToSection("sessions")} icon={Shield} label="Sessions" />
             <div className="pt-4 mt-4 border-t border-border space-y-1">
-              <NavBtn active={false} onClick={handleSignOut} icon={LogOut} label="Sign Out" />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground">
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-2xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Sign Out</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to sign out of your account?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleSignOut} className="rounded-xl">Sign Out</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <NavBtn active={activeNav === "danger"} onClick={() => scrollToSection("danger")} icon={Trash2} label="Delete Account" danger />
             </div>
           </aside>

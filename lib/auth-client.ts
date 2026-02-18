@@ -4,9 +4,10 @@
  */
 import { createAuthClient } from "better-auth/react";
 
+
 export const authClient = createAuthClient({
     // The base URL for the auth server, used for API requests.
-    baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
 });
 
 // Destructuring common auth methods for easier access across the application.
