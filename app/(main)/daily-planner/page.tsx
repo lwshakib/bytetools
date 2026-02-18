@@ -175,9 +175,6 @@ export default function DailyPlannerPage() {
         {/* Top Bar */}
         <div className="flex items-center justify-between p-4 px-6 border-b border-border/50 bg-background/80 backdrop-blur-md shrink-0 z-20">
           <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold tracking-tight text-foreground">Daily Planner</h1>
-              </div>
               <TabsList className="bg-muted/30 p-1 h-9 gap-1 rounded-lg">
                 <TabsTrigger value="daily" className="px-4 rounded-md text-xs font-medium transition-all">
                   Planner
