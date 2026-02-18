@@ -153,7 +153,9 @@ export default function PomodoroPage() {
                       size="lg"
                       className={cn(
                         "h-16 px-12 rounded-2xl text-xs font-bold uppercase tracking-widest shadow-none transition-all active:scale-95 gap-3",
-                        isRunning ? "bg-zinc-800 text-white" : "bg-primary text-primary-foreground"
+                        isRunning 
+                            ? "bg-zinc-900 text-white hover:bg-zinc-950 border border-white/5" 
+                            : "bg-primary text-primary-foreground hover:opacity-90"
                       )}
                     >
                       {isRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
