@@ -2,6 +2,14 @@
 
 Welcome to **Bytetools**! A modern web application built with [Next.js](https://nextjs.org), designed to provide essential utilities for developers and regular users alike.
 
+## 📷 App Demos
+
+<div align="center" style="display: flex; gap: 10px; justify-content: center;">
+  <img src="public/app_demo/dark-demo.png" alt="Dark Mode Demo" width="400" />
+  <img src="public/app_demo/light_demo.png" alt="Light Mode Demo" width="400" />
+</div>
+
+
 ## 🚀 Getting Started
 
 Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
