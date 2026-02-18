@@ -173,22 +173,19 @@ export default function DailyPlannerPage() {
     <div className="flex flex-1 flex-col h-full bg-background overflow-hidden">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
         {/* Top Bar */}
-        <div className="flex items-center justify-between p-3 px-6 border-b border-border/50 bg-background/80 backdrop-blur-md shrink-0 z-20">
-          <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 mr-4">
-                  <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                      <CalendarCheck className="w-5 h-5 text-emerald-500" />
-                  </div>
-                  <h1 className="text-sm font-black uppercase tracking-widest hidden md:block">Tactical Planner</h1>
+        <div className="flex items-center justify-between p-4 px-6 border-b border-border/50 bg-background/80 backdrop-blur-md shrink-0 z-20">
+          <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold tracking-tight text-foreground">Daily Planner</h1>
               </div>
-              <TabsList className="bg-muted/30 p-1 h-10 gap-1 rounded-xl">
-                <TabsTrigger value="daily" className="px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all data-[state=active]:bg-emerald-500 data-[state=active]:text-black">
+              <TabsList className="bg-muted/30 p-1 h-9 gap-1 rounded-lg">
+                <TabsTrigger value="daily" className="px-4 rounded-md text-xs font-medium transition-all">
                   Planner
                 </TabsTrigger>
-                <TabsTrigger value="routine" className="px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all data-[state=active]:bg-emerald-500 data-[state=active]:text-black">
+                <TabsTrigger value="routine" className="px-4 rounded-md text-xs font-medium transition-all">
                   Routines
                 </TabsTrigger>
-                <TabsTrigger value="dump" className="px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all data-[state=active]:bg-emerald-500 data-[state=active]:text-black">
+                <TabsTrigger value="dump" className="px-4 rounded-md text-xs font-medium transition-all">
                   Dump
                 </TabsTrigger>
               </TabsList>
@@ -196,18 +193,18 @@ export default function DailyPlannerPage() {
 
           {activeTab === 'daily' && (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" className="h-9 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-muted" onClick={() => setBaseDate(startOfToday())}>Today</Button>
+              <Button variant="ghost" size="sm" className="h-8 px-3 text-xs font-medium rounded-md hover:bg-muted" onClick={() => setBaseDate(startOfToday())}>Today</Button>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl border border-border/50 hover:bg-muted"><CalendarIcon className="w-4 h-4" /></Button>
+                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-md border-border/50 hover:bg-muted"><CalendarIcon className="w-4 h-4" /></Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 rounded-2xl border-border shadow-2xl" align="end">
+                <PopoverContent className="w-auto p-0 rounded-xl border-border shadow-xl" align="end">
                   <Calendar mode="single" selected={baseDate} onSelect={(d) => d && setBaseDate(d)} initialFocus />
                 </PopoverContent>
               </Popover>
-              <div className="flex items-center bg-muted/30 rounded-xl overflow-hidden border border-border/50">
-                <Button variant="ghost" size="icon" className="h-9 w-9 border-r border-border/50 rounded-none" onClick={() => setBaseDate(subDays(baseDate, 1))}><ChevronLeft className="w-4 h-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-none" onClick={() => setBaseDate(addDays(baseDate, 1))}><ChevronRight className="w-4 h-4" /></Button>
+              <div className="flex items-center rounded-md overflow-hidden border border-border/50">
+                <Button variant="ghost" size="icon" className="h-8 w-8 border-r border-border/50 rounded-none" onClick={() => setBaseDate(subDays(baseDate, 1))}><ChevronLeft className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-none" onClick={() => setBaseDate(addDays(baseDate, 1))}><ChevronRight className="w-4 h-4" /></Button>
               </div>
             </div>
           )}
@@ -301,20 +298,20 @@ function DayColumn({ date, tasks, routines, pendingTasks, onAddTask, onToggleTas
   const completedDisplayTasks = displayTasks.filter(t => t.completed);
 
   return (
-    <div className={cn("flex flex-col h-full rounded-[2.5rem] bg-card/40 border border-border/50 overflow-hidden min-w-[280px] md:min-w-0 transition-all", isToday && "ring-2 ring-emerald-500/20")}>
-      <div className="p-6 pb-4 flex items-center justify-between border-b border-border/10">
+    <div className={cn("flex flex-col h-full rounded-xl bg-card/40 border border-border/50 overflow-hidden min-w-[300px] md:min-w-0 transition-all shadow-sm", isToday && "border-primary/30 bg-primary/[0.02]")}>
+      <div className="p-5 pb-3 flex items-center justify-between border-b border-border/5">
         <div className="flex flex-col">
-           <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">{format(date, 'EEEE')}</h3>
-           <p className="text-sm font-black uppercase tracking-tighter">{format(date, 'MMM dd, yyyy')}</p>
+           <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">{format(date, 'EEEE')}</h3>
+           <p className="text-sm font-bold text-foreground">{format(date, 'MMM dd, yyyy')}</p>
         </div>
-        {isToday && <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">Today</span>}
+        {isToday && <span className="text-[9px] font-bold text-primary uppercase tracking-wider">Today</span>}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {isToday && pendingTasks.length > 0 && (
           <div className="space-y-2">
-            <button onClick={() => setShowPending(!showPending)} className="w-full h-10 px-4 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 text-[9px] font-black uppercase tracking-widest flex items-center justify-between text-amber-500 transition-all">
-              <span>Overdue Analytics ({pendingTasks.length})</span>
+            <button onClick={() => setShowPending(!showPending)} className="w-full h-8 px-3 rounded-lg bg-amber-500/5 hover:bg-amber-500/10 text-[10px] font-bold uppercase tracking-wide flex items-center justify-between text-amber-600 transition-all">
+              <span>Overdue Tasks ({pendingTasks.length})</span>
               {showPending ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
             <AnimatePresence>
@@ -338,24 +335,24 @@ function DayColumn({ date, tasks, routines, pendingTasks, onAddTask, onToggleTas
         )}
       </div>
 
-      <div className="p-4 border-t border-border/10 relative">
+      <div className="p-4 border-t border-border/5 relative">
         {!session?.user && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[2px] cursor-pointer" onClick={() => document.getElementById('signin-trigger')?.click()}>
-               <div className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border/50 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95">
-                   <Package className="w-3 h-3 text-muted-foreground" />
-                   <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Sign in to Plan</span>
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/40 backdrop-blur-[1px] cursor-pointer" onClick={() => document.getElementById('signin-trigger')?.click()}>
+               <div className="flex items-center gap-2 px-3 py-1 bg-background/80 border border-border/50 rounded-full shadow-sm">
+                   <Package className="w-3 h-3 text-muted-foreground/60" />
+                   <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60">Sign in to Plan</span>
                </div>
             </div>
         )}
-        <div className="flex items-center gap-2 bg-muted/20 border border-border/50 rounded-2xl px-4 h-12">
-            <Plus className="w-4 h-4 text-muted-foreground/30" />
+        <div className="flex items-center gap-2 bg-muted/20 border border-border/50 rounded-xl px-3 h-10">
+            <Plus className="w-4 h-4 text-muted-foreground/40" />
             <input 
               value={newTaskText} 
               onChange={(e) => setNewTaskText(e.target.value)} 
               disabled={!session?.user}
               onKeyDown={(e) => e.key === 'Enter' && newTaskText.trim() && (onAddTask(newTaskText), setNewTaskText(''))}
-              placeholder="Record objective..." 
-              className="flex-1 bg-transparent border-none text-[11px] font-bold outline-none placeholder:opacity-30 disabled:text-muted-foreground/50"
+              placeholder="Add task..." 
+              className="flex-1 bg-transparent border-none text-xs font-medium outline-none placeholder:text-muted-foreground/40 disabled:text-muted-foreground/50"
             />
         </div>
       </div>
@@ -366,17 +363,17 @@ function DayColumn({ date, tasks, routines, pendingTasks, onAddTask, onToggleTas
 function TaskItem({ task, onToggle, onDelete, isPending = false }: { task: Task; onToggle: (id: string, data?: any) => void; onDelete: (id: string) => void; isPending?: boolean; }) {
   const isVirtual = task.id.toString().startsWith('virtual-');
   return (
-    <div className={cn("group flex items-center gap-3 p-3 rounded-2xl hover:bg-muted/30 transition-all", isPending && "bg-amber-500/5")}>
+    <div className={cn("group flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/30 transition-all", isPending && "bg-amber-500/5")}>
       <Checkbox 
         checked={task.completed} 
         onCheckedChange={() => onToggle(task.id, isVirtual ? { text: task.text, dateKey: task.date, routineId: task.routineId } : undefined)} 
-        className="w-5 h-5 rounded-lg border-2" 
+        className="w-4 h-4 rounded-md" 
       />
       <div className="flex-1 flex flex-col min-w-0">
-          <span className={cn("text-xs font-bold leading-tight truncate", task.completed && "line-through opacity-30")}>{task.text}</span>
-          {task.routineId && !task.completed && <span className="text-[7px] font-black uppercase text-emerald-500/40 tracking-widest mt-0.5 flex items-center gap-1"><Repeat className="w-2 h-2" /> Routine Instance</span>}
+          <span className={cn("text-xs font-medium leading-tight truncate", task.completed && "line-through opacity-40")}>{task.text}</span>
+          {task.routineId && !task.completed && <span className="text-[8px] font-bold uppercase text-primary/40 tracking-wider mt-0.5 flex items-center gap-1"><Repeat className="w-2 h-2" /> Routine</span>}
       </div>
-      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive shrink-0" onClick={() => onDelete(task.id)}><Trash2 className="w-4 h-4" /></Button>
+      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive shrink-0" onClick={() => onDelete(task.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
     </div>
   );
 }
@@ -400,19 +397,17 @@ function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Rou
 
   return (
     <div className="max-w-4xl mx-auto p-12 space-y-12 pb-32">
-      <div className="bg-card/40 border border-border/50 rounded-[2.5rem] p-10 space-y-10 flex flex-col shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-10 opacity-[0.02] pointer-events-none"><Repeat className="w-48 h-48" /></div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div className="bg-card/40 border border-border/50 rounded-2xl p-8 space-y-8 flex flex-col shadow-sm relative overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest opacity-30">Sequence Protocol Name</Label>
-                  <Input value={newText} onChange={(e) => setNewText(e.target.value)} placeholder="Identify recurring sequence..." className="h-14 bg-muted/10 border-border/50 rounded-2xl px-6 font-black text-xl" />
+                  <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Routine Name</Label>
+                  <Input value={newText} onChange={(e) => setNewText(e.target.value)} placeholder="Identify recurring task..." className="h-12 bg-muted/10 border-border/50 rounded-xl px-4 font-semibold text-lg" />
               </div>
               <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest opacity-30">Temporal Frequency</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Frequency</Label>
                   <div className="flex gap-2">
                     {(['daily', 'weekly', 'bi-weekly', 'monthly'] as const).map(f => (
-                      <Button key={f} variant="ghost" onClick={() => setNewFreq(f)} className={cn("flex-1 h-14 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all", newFreq === f ? "bg-emerald-500 text-black border-emerald-500 shadow-lg shadow-emerald-500/20" : "border-border/50 opacity-40 hover:opacity-100")}>{f}</Button>
+                      <Button key={f} variant="ghost" onClick={() => setNewFreq(f)} className={cn("flex-1 h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all", newFreq === f ? "bg-primary text-primary-foreground border-primary" : "border-border/50 opacity-40 hover:opacity-100")}>{f}</Button>
                     ))}
                   </div>
               </div>
@@ -421,10 +416,10 @@ function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Rou
           <AnimatePresence mode="wait">
             {(newFreq === 'weekly' || newFreq === 'bi-weekly') && (
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-30">Active Day Selection</Label>
-                    <div className="flex flex-wrap gap-3">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Repeat on</Label>
+                    <div className="flex flex-wrap gap-2">
                         {WEEKDAYS.map((day, i) => (
-                            <Button key={day} onClick={() => toggleDay(i)} variant="ghost" className={cn("h-14 w-14 rounded-2xl border transition-all text-[10px] font-black uppercase", selectedDays.includes(i) ? "bg-emerald-500/10 border-emerald-500 text-emerald-500 shadow-inner" : "border-border/50 opacity-30")}>
+                            <Button key={day} onClick={() => toggleDay(i)} variant="ghost" className={cn("h-12 w-12 rounded-xl border transition-all text-[10px] font-bold uppercase", selectedDays.includes(i) ? "bg-primary/5 border-primary text-primary" : "border-border/50 opacity-40")}>
                                 {day.slice(0, 3)}
                             </Button>
                         ))}
@@ -433,16 +428,16 @@ function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Rou
             )}
             {newFreq === 'monthly' && (
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-30">Monthly Reference Date</Label>
-                    <div className="flex items-center gap-6">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest opacity-40">Monthly Date</Label>
+                    <div className="flex items-center gap-4">
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button variant="ghost" className="h-14 px-6 bg-muted/10 border-border/50 rounded-2xl font-black text-lg gap-4 shadow-inner">
-                                    <CalendarIcon className="w-5 h-5 text-emerald-500" />
+                                <Button variant="ghost" className="h-12 px-5 bg-muted/10 border-border/50 rounded-xl font-bold text-base gap-3">
+                                    <CalendarIcon className="w-4 h-4 text-primary" />
                                     Day {selectedDate}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 rounded-2xl border-border shadow-2xl" align="start">
+                            <PopoverContent className="w-auto p-0 rounded-xl border-border shadow-xl" align="start">
                                 <Calendar 
                                     mode="single" 
                                     selected={new Date(new Date().getFullYear(), new Date().getMonth(), selectedDate)} 
@@ -451,35 +446,29 @@ function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Rou
                                 />
                             </PopoverContent>
                         </Popover>
-                        <span className="text-[10px] font-black uppercase tracking-widest opacity-20">Cycle will resolve on the {selectedDate}{selectedDate === 1 ? 'st' : selectedDate === 2 ? 'nd' : selectedDate === 3 ? 'rd' : 'th'} of every month.</span>
                     </div>
                 </motion.div>
             )}
           </AnimatePresence>
-
-          <Button onClick={handleCommit} className="h-16 px-12 bg-white text-black hover:bg-zinc-100 rounded-[2rem] font-black uppercase tracking-widest text-[12px] self-end shadow-2xl transition-all active:scale-95">Commit Sequence</Button>
+ 
+          <Button onClick={handleCommit} className="h-12 px-8 bg-primary text-primary-foreground hover:opacity-90 rounded-xl font-bold uppercase tracking-widest text-xs self-end transition-all active:scale-95">Establish Routine</Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {routines.map(r => (
-          <div key={r.id} className="p-8 bg-card border border-border/50 rounded-[2.5rem] space-y-6 group hover:border-emerald-500/30 transition-all shadow-xl relative overflow-hidden">
+          <div key={r.id} className="p-6 bg-card border border-border/50 rounded-xl space-y-4 group hover:border-primary/20 transition-all shadow-sm relative overflow-hidden">
             <div className="flex items-center justify-between">
-                <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-emerald-500">{r.frequency}</span>
+                <div className="px-2.5 py-1 bg-primary/5 border border-primary/10 rounded-full">
+                    <span className="text-[8px] font-bold uppercase tracking-widest text-primary">{r.frequency}</span>
                 </div>
-                <Button variant="ghost" size="icon" className="h-9 w-9 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive rounded-xl transition-all" onClick={() => onDeleteRoutine(r.id)}><Trash2 className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive rounded-lg transition-all" onClick={() => onDeleteRoutine(r.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
             </div>
-            <p className="text-sm font-black uppercase tracking-tight leading-relaxed">{r.text}</p>
+            <p className="text-sm font-bold text-foreground leading-tight">{r.text}</p>
             {(r.frequency === 'weekly' || r.frequency === 'bi-weekly') && (
-                <div className="flex gap-1.5 pt-2 border-t border-border/10">
+                <div className="flex gap-1.5 pt-2 border-t border-border/5">
                     {r.selectedDays.map(d => (
-                        <span key={d} className="text-[7px] font-black uppercase tracking-widest opacity-30">{WEEKDAYS[d]}</span>
+                        <span key={d} className="text-[8px] font-bold uppercase tracking-tight text-muted-foreground/40">{WEEKDAYS[d]}</span>
                     ))}
-                </div>
-            )}
-            {r.frequency === 'monthly' && (
-                <div className="pt-2 border-t border-border/10">
-                     <span className="text-[7px] font-black uppercase tracking-widest opacity-30">Cycle: Day {r.selectedDate}</span>
                 </div>
             )}
           </div>
@@ -489,7 +478,7 @@ function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Rou
       {routines.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 opacity-5 space-y-6">
               <Repeat className="w-24 h-24" />
-              <p className="text-[10px] font-black uppercase tracking-[0.4em]">No sequences active</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.4em]">No routines active</p>
           </div>
       )}
     </div>
@@ -510,13 +499,12 @@ function TaskDumpTab({ activeTasks, completedTasks, showCompleted, setShowComple
   return (
     <div className="max-w-2xl mx-auto p-12 space-y-12">
       <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur opacity-75 group-hover:opacity-100 transition duration-1000 rounded-[2.5rem]" />
-          <div className="relative flex items-center bg-card border border-border rounded-[2.5rem] p-3 pl-10 shadow-2xl overflow-hidden">
+          <div className="relative flex items-center bg-card border border-border rounded-xl p-2 pl-6 shadow-sm overflow-hidden">
                {!session?.user && (
-                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[2px] cursor-pointer" onClick={() => document.getElementById('signin-trigger')?.click()}>
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border/50 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95">
-                            <Package className="w-3 h-3 text-muted-foreground" />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Sign in to Dump</span>
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/40 backdrop-blur-[1px] cursor-pointer" onClick={() => document.getElementById('signin-trigger')?.click()}>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-background/80 border border-border/50 rounded-full shadow-sm">
+                            <Package className="w-3 h-3 text-muted-foreground/60" />
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60">Sign in to Dump</span>
                         </div>
                     </div>
                )}
@@ -524,16 +512,16 @@ function TaskDumpTab({ activeTasks, completedTasks, showCompleted, setShowComple
                   value={newText} 
                   onChange={(e) => setNewText(e.target.value)} 
                   onKeyDown={(e) => e.key === 'Enter' && newText.trim() && (onAddTask(newText), setNewText(''))} 
-                  placeholder="Identify tactical dump objective..." 
+                  placeholder="Record dump task..." 
                   disabled={!session?.user}
-                  className="border-none bg-transparent focus-visible:ring-0 h-14 text-sm font-bold placeholder:opacity-20 disabled:text-muted-foreground/30" 
+                  className="border-none bg-transparent focus-visible:ring-0 h-11 text-sm font-medium placeholder:opacity-40 disabled:text-muted-foreground/30" 
               />
               <Button 
                   onClick={() => { if(newText.trim()) { onAddTask(newText); setNewText(''); } }} 
                   disabled={!session?.user}
-                  className="bg-emerald-500 text-black rounded-2xl h-14 px-10 text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                  className="bg-primary text-primary-foreground rounded-lg h-11 px-6 text-xs font-bold uppercase tracking-widest transition-all active:scale-95"
               >
-                Record
+                Add
               </Button>
           </div>
       </div>
@@ -542,8 +530,8 @@ function TaskDumpTab({ activeTasks, completedTasks, showCompleted, setShowComple
       </div>
       {completedTasks.length > 0 && (
           <div className="flex flex-col gap-6">
-              <Button variant="ghost" onClick={() => setShowCompleted(!showCompleted)} className="self-center h-12 px-8 rounded-xl text-[9px] font-black uppercase tracking-widest opacity-20 hover:opacity-100 hover:bg-muted transition-all">
-                  {showCompleted ? 'Terminal Hide' : `Inspect ${completedTasks.length} Terminated Objectives`}
+              <Button variant="ghost" onClick={() => setShowCompleted(!showCompleted)} className="self-center h-10 px-6 rounded-lg text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 hover:bg-muted transition-all">
+                  {showCompleted ? 'Hide Completed' : `Show ${completedTasks.length} Completed`}
               </Button>
               <AnimatePresence>
                 {showCompleted && <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden space-y-1 opacity-30">
