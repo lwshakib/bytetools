@@ -237,7 +237,7 @@ export default function Clock({
         <div
           className={cn(
             "text-center z-50 pointer-events-none transition-colors duration-500",
-            clockType === "both" ? "mt-4 absolute -bottom-10" : ""
+            clockType === "both" ? "absolute -bottom-16" : ""
           )}
         >
           <div className={cn("font-black tracking-[0.2em] tabular-nums transition-colors duration-500", digitalTextSizes[size], themeStyles.digitalTime)}>

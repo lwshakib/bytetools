@@ -290,29 +290,41 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     </Card>
 
       <Dialog open={isClockOpen} onOpenChange={setIsClockOpen}>
-        <DialogContent className="sm:max-w-[500px] border-border bg-background backdrop-blur-xl shadow-2xl p-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-              <ClockIcon className="w-4 h-4 text-primary" />
-              {city} Time
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col items-center justify-center p-8 py-12 bg-gradient-to-b from-primary/5 to-transparent">
-            <Clock 
-               time={zonedLiveDate} 
-               size="lg" 
-               clockType="both" 
-               theme="default"
-               international={false}
-            />
-          </div>
-          <div className="bg-muted/30 p-6 flex justify-between items-center border-t border-border">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{country}</span>
-              <span className="text-xs font-bold text-foreground">{timezone}</span>
+        <DialogContent showCloseButton={false} className="sm:max-w-[450px] border-border bg-background/95 backdrop-blur-2xl shadow-2xl p-0 overflow-hidden ring-1 ring-white/5">
+          {/* Decorative background glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col pt-12">
+            <div className="flex flex-col items-center text-center space-y-1 mb-10 px-6">
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary/60 mb-1">{country}</p>
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">{city}</h2>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="px-2 py-0.5 rounded-full bg-primary/5 border border-primary/10 text-[9px] font-bold text-primary tracking-widest uppercase">
+                  GMT{offset}
+                </span>
+              </div>
+              <p className="text-[11px] font-medium text-muted-foreground/50 tracking-tight mt-2">{timezone}</p>
             </div>
-            <div className="bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest">GMT{offset}</span>
+
+            <div className="flex flex-col items-center justify-center p-8 pt-12 pb-28 bg-gradient-to-b from-primary/[0.04] to-transparent">
+              <Clock 
+                 time={zonedLiveDate} 
+                 size="lg" 
+                 clockType="both" 
+                 theme="default"
+                 international={false}
+              />
+            </div>
+
+            <div className="p-8 pt-0 flex flex-col items-center">
+               <Button 
+                variant="ghost" 
+                size="sm" 
+                className="rounded-full text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all px-6 mb-4"
+                onClick={() => setIsClockOpen(false)}
+               >
+                 Close Monitor
+               </Button>
             </div>
           </div>
         </DialogContent>
