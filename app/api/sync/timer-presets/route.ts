@@ -1,8 +1,15 @@
+/**
+ * API route for synchronizing custom timer presets.
+ * Handles fetching all presets and performing a full sync (replace all) operation.
+ */
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 
+/**
+ * Retrieves all saved timer presets for the authenticated user.
+ */
 export async function GET() {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -24,6 +31,10 @@ export async function GET() {
     })));
 }
 
+/**
+ * Synchronizes timer presets by replacing the entire set of user presets.
+ * Uses a transaction to ensure atomic deletion and recreation.
+ */
 export async function POST(req: Request) {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -35,6 +46,7 @@ export async function POST(req: Request) {
 
     const items = await req.json();
 
+    // Perform a destructive sync: wipe existing presets and insert the current state from the client.
     await prisma.$transaction([
         prisma.timerPreset.deleteMany({ where: { userId: session.user.id } }),
         prisma.timerPreset.createMany({
