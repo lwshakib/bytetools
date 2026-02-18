@@ -8,12 +8,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { 
   Calendar as CalendarIcon, 
   Clock, 
-  Activity
+  Activity,
+  CalendarDays
 } from 'lucide-react';
-import { format, differenceInYears, differenceInMonths, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds, startOfToday } from 'date-fns';
+import { format, differenceInYears, differenceInMonths, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds, startOfToday, setYear as setDateYear, setMonth as setDateMonth, setDate as setDateDay, setHours as setDateHours, setMinutes as setDateMinutes, getYear, getMonth, getDate, getHours, getMinutes, lastDayOfMonth } from 'date-fns';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 
 interface AgeBreakdown {
   years: number;
@@ -29,8 +33,8 @@ interface AgeBreakdown {
 }
 
 export default function AgeCalculatorPage() {
-  const [birthDate, setBirthDate] = useState<Date | undefined>(new Date(2000, 0, 1));
-  const [currentDate, setCurrentDate] = useState<Date>(startOfToday());
+  const [birthDate, setBirthDate] = useState<Date | undefined>(new Date(2000, 0, 1, 0, 0));
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [ageBreakdown, setAgeBreakdown] = useState<AgeBreakdown | null>(null);
 
   useEffect(() => {
@@ -52,14 +56,10 @@ export default function AgeCalculatorPage() {
     }
   }, [birthDate, currentDate]);
 
-  // Update seconds in real-time
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentDate(new Date());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
+  // Update current date every second to keep the "Live" feel if desired, 
+  // though typically users want to set a specific current date.
+  // Let's keep a "Now" button or just let it be static unless they click "Now".
+  
   return (
     <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">
       <div className="flex-1 flex flex-col p-6 md:p-12">
@@ -86,55 +86,24 @@ export default function AgeCalculatorPage() {
               className="relative flex flex-col p-8 md:p-14 bg-card/40 border border-border/50 rounded-xl shadow-xl backdrop-blur-md w-full overflow-hidden"
             >
               <div className="grid grid-cols-1 gap-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 px-1">Birth Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full h-12 justify-start text-left font-bold text-sm rounded-lg border-border/50 bg-muted/20",
-                            !birthDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-3 h-4 w-4 text-primary" />
-                          {birthDate ? format(birthDate, "PPP") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 rounded-xl border-border shadow-2xl" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={birthDate}
-                          onSelect={setBirthDate}
-                          initialFocus
-                          disabled={(date) => date > new Date()}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                  <div className="space-y-6">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 px-1">Birth Date & Time</Label>
+                    <DateTimePicker date={birthDate} setDate={(d) => setBirthDate(d)} label="Select Birth Date" />
                   </div>
 
-                  <div className="space-y-4">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 px-1">Current Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full h-12 justify-start text-left font-bold text-sm rounded-lg border-border/50 bg-muted/20"
-                        >
-                          <CalendarIcon className="mr-3 h-4 w-4 text-primary" />
-                          {format(currentDate, "PPP")}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 rounded-xl border-border shadow-2xl" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={currentDate}
-                          onSelect={(date) => date && setCurrentDate(date)}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                  <div className="space-y-6">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 px-1">Current Date & Time</Label>
+                    <div className="flex flex-col gap-2">
+                       <DateTimePicker date={currentDate} setDate={(d) => setCurrentDate(d)} label="Select Current Date" />
+                       <Button 
+                         variant="ghost" 
+                         className="self-end text-[10px] font-bold uppercase tracking-widest h-8 text-primary/60 hover:text-primary"
+                         onClick={() => setCurrentDate(new Date())}
+                       >
+                         Snap to Now
+                       </Button>
+                    </div>
                   </div>
                 </div>
 

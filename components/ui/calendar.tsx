@@ -14,6 +14,8 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 function Calendar({
   className,
@@ -74,11 +76,11 @@ function Calendar({
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
-          "relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md",
+          "relative",
           defaultClassNames.dropdown_root
         ),
         dropdown: cn(
-          "absolute bg-popover inset-0 opacity-0",
+          "opacity-0",
           defaultClassNames.dropdown
         ),
         caption_label: cn(
@@ -160,6 +162,48 @@ function Calendar({
 
           return (
             <ChevronDownIcon className={cn("size-4", className)} {...props} />
+          )
+        },
+        Dropdown: ({ value, options, onChange, className, ...props }) => {
+          const selectedOption = options?.find((option) => option.value === value)
+          return (
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className={cn("relative inline-flex items-center", className)}>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/50 hover:border-primary/30 hover:bg-muted/50 transition-all cursor-pointer group min-w-[70px] justify-between shadow-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/80 group-hover:text-foreground transition-colors line-clamp-1">
+                      {selectedOption?.label}
+                    </span>
+                    <ChevronDownIcon className="size-3 text-muted-foreground/40 group-hover:text-primary transition-colors shrink-0" />
+                  </div>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-40 p-1 bg-card/95 backdrop-blur-xl border-border shadow-2xl rounded-xl z-[100]" align="center">
+                <ScrollArea className="h-60">
+                  <div className="flex flex-col gap-0.5 p-1">
+                    {options?.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          const changeEvent = {
+                            target: { value: option.value },
+                          } as React.ChangeEvent<HTMLSelectElement>
+                          onChange?.(changeEvent)
+                        }}
+                        className={cn(
+                          "flex w-full items-center px-2 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all",
+                          option.value === value 
+                            ? "bg-primary text-primary-foreground shadow-[0_0_12px_rgba(var(--primary),0.3)]" 
+                            : "hover:bg-primary/10 text-muted-foreground/60 hover:text-primary"
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
           )
         },
         DayButton: CalendarDayButton,
