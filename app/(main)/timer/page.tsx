@@ -89,24 +89,36 @@ export default function TimerPage() {
     toast.success('Temporal count completed.');
   };
 
+  const [lastDuration, setLastDuration] = useState({ h: '00', m: '10', s: '00', total: 600 });
+
   const handleStart = () => {
     const total = (parseInt(hours) || 0) * 3600 + (parseInt(minutes) || 0) * 60 + (parseInt(seconds) || 0);
     if (total === 0) { toast.error('Set duration first.'); return; }
+    setLastDuration({ h: hours, m: minutes, s: seconds, total });
     setTimeLeft(total); setIsRunning(true); setIsEditing(false);
   };
 
   const handlePause = () => setIsRunning(false);
   const handleResume = () => setIsRunning(true);
-  const handleReset = () => { setIsRunning(false); setTimeLeft(0); setIsEditing(true); setHours('00'); setMinutes('00'); setSeconds('00'); };
+  const handleReset = () => { 
+    setIsRunning(false); 
+    setIsEditing(true); 
+    setHours(lastDuration.h); 
+    setMinutes(lastDuration.m); 
+    setSeconds(lastDuration.s); 
+    setTimeLeft(lastDuration.total);
+    setActivePresetId(null); // Clear active preset to show it's reset
+  };
 
   const handlePresetClick = (preset: Preset) => {
-    const h = Math.floor(preset.duration / 3600);
-    const m = Math.floor((preset.duration % 3600) / 60);
-    const s = preset.duration % 60;
-    setHours(h.toString().padStart(2, '0'));
-    setMinutes(m.toString().padStart(2, '0'));
-    setSeconds(s.toString().padStart(2, '0'));
+    const h = Math.floor(preset.duration / 3600).toString().padStart(2, '0');
+    const m = Math.floor((preset.duration % 3600) / 60).toString().padStart(2, '0');
+    const s = (preset.duration % 60).toString().padStart(2, '0');
+    setHours(h);
+    setMinutes(m);
+    setSeconds(s);
     setTimeLeft(preset.duration); 
+    setLastDuration({ h, m, s, total: preset.duration });
     setActivePresetId(preset.id);
     setIsEditing(true); setIsRunning(false);
   };
@@ -146,54 +158,54 @@ export default function TimerPage() {
                     layoutId="main-timer"
                     className="relative flex flex-col items-center justify-center p-8 md:p-14 bg-card/40 border border-border/50 rounded-3xl shadow-xl backdrop-blur-md"
                 >
-                    <div className="flex items-center justify-center gap-2 md:gap-4 w-full">
+                    <div className="flex justify-center items-center gap-2 md:gap-4 w-full">
                         {/* Hours Unit */}
                         <div className="flex flex-col items-center gap-3">
-                            <div className="flex bg-muted/20 border border-border/50 rounded-xl p-4 md:p-8">
+                            <div className="flex bg-muted/20 border border-border/50 rounded-xl w-24 h-24 md:w-44 md:h-44 items-center justify-center relative">
                                 {isEditing ? (
                                     <input
                                         value={hours}
                                         onChange={(e) => handleInputChange(e.target.value, setHours, 99)}
-                                        className="w-14 md:w-32 text-center text-5xl md:text-8xl font-bold bg-transparent outline-none tabular-nums tracking-tighter text-foreground"
+                                        className="w-full text-center text-5xl md:text-8xl font-bold bg-transparent outline-none tabular-nums tracking-tighter text-foreground"
                                     />
                                 ) : (
-                                    <span className="w-14 md:w-32 text-center text-5xl md:text-8xl font-bold tabular-nums tracking-tighter text-foreground">{hours}</span>
+                                    <span className="text-5xl md:text-8xl font-bold tabular-nums tracking-tighter text-foreground">{hours}</span>
                                 )}
                             </div>
                             <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30">Hours</span>
                         </div>
 
-                        <span className="text-2xl md:text-5xl font-thin text-muted-foreground/20 mb-10">:</span>
+                        <span className="text-2xl md:text-5xl font-thin text-muted-foreground/20 self-center pb-8">:</span>
 
                         {/* Minutes Unit */}
                         <div className="flex flex-col items-center gap-3">
-                            <div className="flex bg-muted/20 border border-border/50 rounded-xl p-4 md:p-8">
+                            <div className="flex bg-muted/20 border border-border/50 rounded-xl w-24 h-24 md:w-44 md:h-44 items-center justify-center relative">
                                 {isEditing ? (
                                     <input
                                         value={minutes}
                                         onChange={(e) => handleInputChange(e.target.value, setMinutes, 59)}
-                                        className="w-14 md:w-32 text-center text-5xl md:text-8xl font-bold bg-transparent outline-none tabular-nums tracking-tighter text-foreground"
+                                        className="w-full text-center text-5xl md:text-8xl font-bold bg-transparent outline-none tabular-nums tracking-tighter text-foreground"
                                     />
                                 ) : (
-                                    <span className="w-14 md:w-32 text-center text-5xl md:text-8xl font-bold tabular-nums tracking-tighter text-foreground">{minutes}</span>
+                                    <span className="text-5xl md:text-8xl font-bold tabular-nums tracking-tighter text-foreground">{minutes}</span>
                                 )}
                             </div>
                             <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30">Minutes</span>
                         </div>
 
-                        <span className="text-2xl md:text-5xl font-thin text-muted-foreground/20 mb-10">:</span>
+                        <span className="text-2xl md:text-5xl font-thin text-muted-foreground/20 self-center pb-8">:</span>
 
                         {/* Seconds Unit */}
                         <div className="flex flex-col items-center gap-3">
-                            <div className="flex bg-primary/5 border border-primary/20 rounded-xl p-4 md:p-8">
+                            <div className="flex bg-primary/5 border border-primary/20 rounded-xl w-24 h-24 md:w-44 md:h-44 items-center justify-center relative">
                                 {isEditing ? (
                                     <input
                                         value={seconds}
                                         onChange={(e) => handleInputChange(e.target.value, setSeconds, 59)}
-                                        className="w-14 md:w-32 text-center text-5xl md:text-8xl font-bold bg-transparent outline-none tabular-nums tracking-tighter text-primary"
+                                        className="w-full text-center text-5xl md:text-8xl font-bold bg-transparent outline-none tabular-nums tracking-tighter text-primary"
                                     />
                                 ) : (
-                                    <span className="w-14 md:w-32 text-center text-5xl md:text-8xl font-bold tabular-nums tracking-tighter text-primary">{seconds}</span>
+                                    <span className="text-5xl md:text-8xl font-bold tabular-nums tracking-tighter text-primary">{seconds}</span>
                                 )}
                             </div>
                             <span className="text-[9px] font-bold uppercase tracking-widest text-primary/30">Seconds</span>
