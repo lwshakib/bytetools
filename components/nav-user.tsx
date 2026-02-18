@@ -47,7 +47,7 @@ export function NavUser({
     await signOut({
         fetchOptions: {
             onSuccess: () => {
-                // Stay on same page
+                window.location.href = "/";
             }
         }
     })
