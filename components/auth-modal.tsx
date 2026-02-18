@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, signUp } from "@/lib/auth-client";
+import { authClient, signIn, signUp } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,13 +16,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, Lock, User, Github, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-interface AuthModalProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
-}
+import { useAuthModal } from "@/hooks/use-auth-modal";
 
-export function AuthModal({ isOpen, onOpenChange, onSuccess }: AuthModalProps) {
+export function AuthModal() {
+  const { isOpen, view, onClose, setView } = useAuthModal();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,11 +36,15 @@ export function AuthModal({ isOpen, onOpenChange, onSuccess }: AuthModalProps) {
       }, {
         onSuccess: () => {
           toast.success("Signed in successfully!");
-          onOpenChange(false);
-          onSuccess?.();
+          onClose();
         },
         onError: (ctx) => {
-          toast.error(ctx.error.message || "Failed to sign in");
+          if (ctx.error.status === 403) {
+            toast.error("Please verify your email before signing in.");
+            setView("verification-sent");
+          } else {
+            toast.error(ctx.error.message || "Failed to sign in");
+          }
         }
       });
     } catch (error) {
@@ -61,17 +62,38 @@ export function AuthModal({ isOpen, onOpenChange, onSuccess }: AuthModalProps) {
         email,
         password,
         name,
-        callbackURL: window.location.href,
+        // Redirect back to the CURRENT page with a verified flag after they click the link
+        callbackURL: `${window.location.href}${window.location.href.includes("?") ? "&" : "?"}verified=true`,
       }, {
         onSuccess: () => {
-          toast.success("Account created successfully!");
-          onOpenChange(false);
-          onSuccess?.();
+          toast.success("Account created! Please check your email to verify.");
+          setView("verification-sent");
         },
         onError: (ctx) => {
           toast.error(ctx.error.message || "Failed to create account");
         }
       });
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const { error } = await authClient.requestPasswordReset({
+        email,
+        redirectTo: "/reset-password",
+      });
+      if (error) {
+        toast.error(error.message || "Failed to send reset link");
+      } else {
+        toast.success("Reset link sent to your email!");
+        setView("login");
+      }
     } catch (error) {
       toast.error("Something went wrong");
     } finally {
@@ -93,140 +115,229 @@ export function AuthModal({ isOpen, onOpenChange, onSuccess }: AuthModalProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        onClose();
+        // Delay resetting view to avoid flash during close animation
+        setTimeout(() => setView("login"), 200);
+      }
+    }}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">Welcome to ByteTools</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center">
+            {view === "forgot-password" ? "Reset Password" : view === "verification-sent" ? "Check Email" : "Welcome to ByteTools"}
+          </DialogTitle>
           <DialogDescription className="text-center">
-            Sign in to sync your tools, tasks, and settings across all your devices.
+            {view === "forgot-password" 
+              ? "Enter your email address and we'll send you a link to reset your password."
+              : view === "verification-sent"
+              ? "Verify your email to access your account."
+              : "Sign in to sync your tools, tasks, and settings across all your devices."}
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="login">
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="login-email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="login-email"
-                    placeholder="name@example.com"
-                    type="email"
-                    className="pl-9"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
+        {view === "forgot-password" ? (
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="forgot-email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="forgot-email"
+                  placeholder="name@example.com"
+                  type="email"
+                  className="pl-9"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="login-password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="login-password"
-                    type="password"
-                    className="pl-9"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Send Reset Link
+            </Button>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              className="w-full" 
+              onClick={() => setView("login")}
+              disabled={isLoading}
+            >
+              Back to Login
+            </Button>
+          </form>
+        ) : view === "verification-sent" ? (
+          <div className="text-center space-y-6 py-4">
+            <div className="flex justify-center">
+              <div className="bg-primary/10 p-4 rounded-full border border-primary/20">
+                <Mail className="h-10 w-10 text-primary animate-pulse" />
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Sign In
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold tracking-tight">Check your email</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                We've sent a verification link to <span className="font-medium text-foreground">{email || "your email"}</span>. 
+                Please click the link to verify your account and continue.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Button 
+                variant="outline" 
+                className="w-full rounded-xl" 
+                onClick={() => window.open(`https://mail.google.com/`, "_blank")}
+              >
+                Go to Gmail
               </Button>
-            </form>
-          </TabsContent>
-
-          <TabsContent value="signup">
-            <form onSubmit={handleSignUp} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="signup-name">Full Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="signup-name"
-                    placeholder="John Doe"
-                    className="pl-9"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="signup-email"
-                    placeholder="name@example.com"
-                    type="email"
-                    className="pl-9"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    className="pl-9"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Create Account
+              <Button 
+                variant="ghost" 
+                className="w-full rounded-xl" 
+                onClick={() => setView("login")}
+              >
+                Back to Login
               </Button>
-            </form>
-          </TabsContent>
-        </Tabs>
-
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
+            </div>
+            <p className="text-[11px] text-muted-foreground bg-muted/50 p-3 rounded-lg border border-border/40">
+              Didn't receive an email? Check your spam folder or try signing in again to resend it.
+            </p>
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-          </div>
-        </div>
+        ) : (
+          <Tabs value={view} onValueChange={(v) => setView(v as "login" | "signup")} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4 bg-muted/50 p-1 rounded-xl">
+              <TabsTrigger value="login" className="rounded-lg data-[state=active]:shadow-sm">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-lg data-[state=active]:shadow-sm">Sign Up</TabsTrigger>
+            </TabsList>
 
-        <Button
-          variant="outline"
-          type="button"
-          className="w-full shadow-sm"
-          onClick={handleGoogleSignIn}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <svg className="mr-2 h-4 w-4" viewBox="-3 0 262 262" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
-              <path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4"></path>
-              <path d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" fill="#34A853"></path>
-              <path d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782" fill="#FBBC05"></path>
-              <path d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251" fill="#EB4335"></path>
-            </svg>
-          )}
-          Google
-        </Button>
+            <TabsContent value="login">
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="login-email"
+                      placeholder="name@example.com"
+                      type="email"
+                      className="pl-9 h-11 rounded-xl"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="login-password">Password</Label>
+                    <button 
+                      type="button"
+                      onClick={() => setView("forgot-password")}
+                      className="text-xs text-primary hover:underline font-medium"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="login-password"
+                      type="password"
+                      className="pl-9 h-11 rounded-xl"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <Button type="submit" className="w-full h-11 rounded-xl shadow-lg shadow-primary/10" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Sign In
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="signup">
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-name">Full Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="signup-name"
+                      placeholder="John Doe"
+                      className="pl-9 h-11 rounded-xl"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="signup-email"
+                      placeholder="name@example.com"
+                      type="email"
+                      className="pl-9 h-11 rounded-xl"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      className="pl-9 h-11 rounded-xl"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <Button type="submit" className="w-full h-11 rounded-xl shadow-lg shadow-primary/10" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Create Account
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {view !== "forgot-password" && view !== "verification-sent" && (
+          <>
+            <div className="relative my-6 flex items-center">
+              <div className="flex-grow border-t border-border/60"></div>
+              <span className="flex-shrink mx-4 text-muted-foreground text-sm font-medium">Or continue with</span>
+              <div className="flex-grow border-t border-border/60"></div>
+            </div>
+
+            <Button
+              variant="outline"
+              type="button"
+              className="w-full h-11 rounded-xl shadow-sm border-border/60 hover:bg-muted/50 transition-all"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <svg className="mr-3 h-4 w-4" viewBox="-3 0 262 262" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
+                  <path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4"></path>
+                  <path d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" fill="#34A853"></path>
+                  <path d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782" fill="#FBBC05"></path>
+                  <path d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251" fill="#EB4335"></path>
+                </svg>
+              )}
+              <span className="font-semibold">Google</span>
+            </Button>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
