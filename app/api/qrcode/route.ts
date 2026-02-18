@@ -1,8 +1,15 @@
+/**
+ * API route for persisting and managing saved QR codes.
+ * Allows users to store their custom-generated QR codes with specific styling.
+ */
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 
+/**
+ * Retrieves all saved QR codes for the authenticated user.
+ */
 export async function GET() {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -20,6 +27,9 @@ export async function GET() {
     return NextResponse.json(qrCodes);
 }
 
+/**
+ * Saves a new QR code configuration to the database.
+ */
 export async function POST(req: Request) {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -40,14 +50,17 @@ export async function POST(req: Request) {
             userId: session.user.id,
             name: name || "My QR Code",
             content,
-            fgColor: fgColor || "#ffffff",
-            level: level || "H"
+            fgColor: fgColor || "#ffffff", // Default to white foreground if not provided
+            level: level || "H" // Default to High error correction
         }
     });
 
     return NextResponse.json(savedQr);
 }
 
+/**
+ * Deletes a saved QR code configuration.
+ */
 export async function DELETE(req: Request) {
     const session = await auth.api.getSession({
         headers: await headers()
