@@ -80,43 +80,67 @@ export default function StopwatchPage() {
 
   return (
     <div className={cn(
-        "flex flex-1 flex-col h-full bg-background transition-all duration-500",
-        isFullscreen ? "fixed inset-0 z-50 p-20" : "p-8 md:p-12"
+        "flex flex-1 flex-col h-full bg-background overflow-hidden transition-all duration-500",
+        isFullscreen ? "fixed inset-0 z-50" : "p-6 md:p-12"
     )}>
-      <div className="w-full h-full max-w-5xl mx-auto flex flex-col space-y-12">
-        <div className="flex-1 flex flex-col items-center justify-center space-y-12">
-            <div className="relative group">
-                <div className="absolute -inset-20 bg-primary/5 blur-3xl rounded-full opacity-30 animate-pulse" />
-                <div className="relative flex flex-col items-center select-none cursor-default">
-                    <div className="flex items-baseline">
-                        <span className="text-[120px] md:text-[180px] font-mono font-bold tracking-tighter tabular-nums leading-none">
-                            {t.m}<span className="text-muted-foreground/20">:</span>{t.s}
-                        </span>
-                        <span className="text-[40px] md:text-[60px] font-mono font-bold text-primary tabular-nums ml-4 opacity-80">
-                            {t.ms}
-                        </span>
-                    </div>
-                </div>
+      <div className="w-full h-full max-w-5xl mx-auto flex flex-col items-center">
+        {/* Header Section */}
+        {!isFullscreen && (
+            <div className="flex flex-col items-center text-center space-y-4 mb-16">
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-border/50 text-foreground text-[10px] font-bold uppercase tracking-widest"
+                >
+                    <Timer className="w-3.5 h-3.5 text-primary" />
+                    Temporal Tracking
+                </motion.div>
+                <p className="text-muted-foreground text-[10px] font-medium uppercase tracking-[0.2em] opacity-40">Precision Millisecond Synchronization</p>
             </div>
+        )}
 
-            <div className="flex items-center gap-4">
+        {/* Time Display */}
+        <div className={cn(
+            "relative flex-1 flex flex-col items-center justify-center w-full",
+            isFullscreen ? "mb-0" : "mb-20"
+        )}>
+            <div className="absolute -inset-40 bg-primary/5 blur-[120px] rounded-full pointer-events-none opacity-40" />
+            
+            <motion.div 
+                layoutId="stopwatch-display"
+                className={cn(
+                    "relative flex flex-col items-center justify-center select-none",
+                    isFullscreen ? "scale-150" : ""
+                )}
+            >
+                <div className="flex items-baseline gap-1">
+                    <span className="text-[100px] md:text-[140px] font-bold tracking-tighter tabular-nums leading-none">
+                        {t.m}<span className="text-muted-foreground/10 mx-1">:</span>{t.s}
+                    </span>
+                    <span className="text-[32px] md:text-[48px] font-bold text-primary tabular-nums tracking-tight opacity-60">
+                        {t.ms}
+                    </span>
+                </div>
+            </motion.div>
+
+            <div className="flex items-center gap-4 mt-16 pb-1">
                 <Button
                     onClick={toggleStopwatch}
                     size="lg"
                     className={cn(
-                        "h-16 px-12 rounded-2xl text-xs font-bold uppercase tracking-widest shadow-none transition-all active:scale-95 gap-3",
-                        isRunning ? "bg-zinc-800 text-white" : "bg-primary text-primary-foreground"
+                        "h-14 px-10 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all active:scale-95 gap-3",
+                        isRunning ? "bg-secondary text-secondary-foreground hover:bg-secondary/80" : "bg-primary text-primary-foreground hover:bg-primary/90"
                     )}
                 >
-                    {isRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    {isRunning ? 'Hold' : 'Launch'}
+                    {isRunning ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+                    {isRunning ? 'Pause' : 'Start'}
                 </Button>
                 
                 <Button
                     onClick={addLap}
                     disabled={!isRunning}
                     variant="outline"
-                    className="h-16 w-16 rounded-2xl border-border/50 hover:bg-muted"
+                    className="h-14 w-14 rounded-xl border-border/50 hover:bg-muted transition-all active:scale-95"
                 >
                     <Flag className="w-4 h-4" />
                 </Button>
@@ -124,7 +148,7 @@ export default function StopwatchPage() {
                 <Button
                     onClick={resetStopwatch}
                     variant="outline"
-                    className="h-16 w-16 rounded-2xl border-border/50 hover:bg-muted"
+                    className="h-14 w-14 rounded-xl border-border/50 hover:bg-muted transition-all active:scale-95"
                 >
                     <RotateCcw className="w-4 h-4" />
                 </Button>
@@ -132,70 +156,90 @@ export default function StopwatchPage() {
                 <Button
                     onClick={() => setIsFullscreen(!isFullscreen)}
                     variant="ghost"
-                    className="h-16 w-16 rounded-2xl hover:bg-muted opacity-20 hover:opacity-100 transition-all"
+                    size="icon"
+                    className="h-14 w-14 rounded-xl border border-border/50 bg-muted/10 text-muted-foreground hover:text-foreground transition-all active:scale-95"
                 >
                     {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                 </Button>
             </div>
         </div>
 
+        {/* Stats & Laps Section */}
         <AnimatePresence>
             {laps.length > 0 && !isFullscreen && (
                 <motion.div 
-                    initial={{ opacity: 0, y: 40 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 40 }}
-                    className="grid grid-cols-1 md:grid-cols-12 gap-8 shrink-0"
+                    exit={{ opacity: 0, y: 20 }}
+                    className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 shrink-0 pb-12"
                 >
-                    <div className="md:col-span-4 space-y-1">
-                        {[
-                            { label: 'Delta Avg', val: formatTime(averageLap), icon: Activity },
-                            { label: 'Optimum', val: formatTime(laps[bestLapIndex] || 0), icon: TrendingUp, color: 'text-emerald-500' },
-                            { label: 'Standard', val: formatTime(laps[worstLapIndex] || 0), icon: TrendingDown, color: 'text-red-500' }
-                        ].map((stat, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 bg-card/40 border border-border/10 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                    <div className={cn("p-1.5 rounded-lg bg-muted/20", stat.color)}>
-                                        <stat.icon className="w-3 h-3" />
+                    {/* Insights */}
+                    <div className="lg:col-span-4 space-y-3">
+                        <div className="px-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30">Temporal Insights</span>
+                        </div>
+                        <div className="space-y-2">
+                            {[
+                                { label: 'Delta Average', val: formatTime(averageLap), icon: Activity, color: 'text-primary' },
+                                { label: 'Fastest Mark', val: formatTime(laps[bestLapIndex] || 0), icon: TrendingUp, color: 'text-emerald-500' },
+                                { label: 'Slowest Mark', val: formatTime(laps[worstLapIndex] || 0), icon: TrendingDown, color: 'text-amber-500' }
+                            ].map((stat, i) => (
+                                <div key={i} className="flex items-center justify-between p-4 bg-muted/20 border border-border/50 rounded-xl">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn("p-1.5 rounded-lg bg-background/50", stat.color)}>
+                                            <stat.icon className="w-3.5 h-3.5" />
+                                        </div>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">{stat.label}</span>
                                     </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">{stat.label}</span>
+                                    <span className="text-xs font-bold tabular-nums tracking-tight">{stat.val.m}:{stat.val.s}<span className="opacity-30 text-[10px]">.{stat.val.ms}</span></span>
                                 </div>
-                                <span className="text-xs font-mono font-bold">{stat.val.m}:{stat.val.s}</span>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="md:col-span-8 overflow-y-auto max-h-[255px] space-y-1 pr-2 thin-scrollbar">
-                        <div className="flex items-center justify-between px-4 pb-2">
-                             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30">Registry</span>
-                             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30">Delta</span>
+                    {/* Registry */}
+                    <div className="lg:col-span-8 flex flex-col space-y-3">
+                        <div className="flex items-center justify-between px-1">
+                             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30">Lap Registry</span>
+                             <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/20 italic">Last Updated: {t.m}:{t.s}</span>
                         </div>
-                        {laps.map((lap, i) => {
-                            const lt = formatTime(lap);
-                            const idx = laps.length - i;
-                            return (
-                                <motion.div
-                                    key={idx}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className={cn(
-                                        "flex items-center justify-between p-4 rounded-xl transition-all border",
-                                        i === bestLapIndex ? "bg-emerald-500/5 border-emerald-500/20" : 
-                                        i === worstLapIndex ? "bg-red-500/5 border-red-500/20" : 
-                                        "bg-muted/10 border-border/5"
-                                    )}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <span className="text-[10px] font-mono font-bold opacity-30">{idx.toString().padStart(2, '0')}</span>
-                                        <span className="text-[10px] font-bold uppercase tracking-widest">Mark</span>
-                                    </div>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-sm font-mono font-bold">{lt.m}:{lt.s}</span>
-                                        <span className="text-[10px] font-mono opacity-40">.{lt.ms}</span>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
+                        <div className="grid gap-2 overflow-y-auto max-h-[220px] pr-2 thin-scrollbar">
+                            {laps.map((lap, i) => {
+                                const lt = formatTime(lap);
+                                const idx = laps.length - i;
+                                return (
+                                    <motion.div
+                                        key={idx}
+                                        layout
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className={cn(
+                                            "flex items-center justify-between p-4 rounded-xl transition-all border",
+                                            i === bestLapIndex ? "bg-emerald-500/5 border-emerald-500/10" : 
+                                            i === worstLapIndex ? "bg-amber-500/5 border-amber-500/10" : 
+                                            "bg-card/40 border-border/50 shadow-sm"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-6">
+                                            <span className="text-[9px] font-bold text-muted-foreground/20 tabular-nums">#{idx.toString().padStart(2, '0')}</span>
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40 leading-none mb-1.5">Mark Capture</span>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-sm font-bold tabular-nums tracking-tight">{lt.m}:{lt.s}</span>
+                                                    <span className="text-[10px] font-bold opacity-30">.{lt.ms}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {i === bestLapIndex && <TrendingUp className="w-3.5 h-3.5 text-emerald-500/50" />}
+                                            {i === worstLapIndex && <TrendingDown className="w-4 h-4 text-amber-500/50" />}
+                                            <div className="h-8 w-[1px] bg-border/50 mx-2" />
+                                            <ChevronRight className="w-3 h-3 text-muted-foreground/20" />
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </motion.div>
             )}
