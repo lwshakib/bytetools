@@ -25,14 +25,47 @@ interface TimezoneCardProps {
   timezone: string;
 }
 
+const TimezoneRuler = React.memo(({ minutesInDay }: { minutesInDay: number }) => {
+  const ticks = useMemo(() => {
+    return Array.from({ length: 97 }, (_, i) => {
+      const tickMinute = i * 15;
+      const dist = Math.abs(tickMinute - minutesInDay);
+      const isNearHandle = dist <= 60;
+      
+      let heightClass = "h-2";
+      let colorClass = "bg-zinc-800/40";
+      
+      if (i % 24 === 0) {
+        heightClass = "h-5";
+        colorClass = "bg-zinc-600";
+      } else if (i % 4 === 0) {
+        heightClass = "h-3";
+        colorClass = "bg-zinc-700";
+      }
+      
+      if (isNearHandle) {
+        colorClass = "bg-zinc-300";
+      }
+      
+      return (
+        <div 
+          key={i} 
+          className={cn("w-px", heightClass, colorClass)} 
+        />
+      );
+    });
+  }, [minutesInDay]);
+
+  return <>{ticks}</>;
+});
+
+TimezoneRuler.displayName = 'TimezoneRuler';
+
 export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, timezone }) => {
-  const { baseTime, setTimeOffset, resetTime, removeTimezone, updateTimezone, selectedTimezones, selectedId, setSelectedId, timeOffset } = useTimezoneStore();
+  const { baseTime, setTimeOffset, resetTime, removeTimezone, updateTimezone, selectedTimezones, selectedId, setSelectedId, timeOffset, setBaseTime } = useTimezoneStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isClockOpen, setIsClockOpen] = useState(false);
   const [liveNow, setLiveNow] = useState(new Date());
-  
-  // Local state for smooth slider interaction
-  const [localMinutes, setLocalMinutes] = useState<number | null>(null);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLInputElement>(null);
@@ -65,16 +98,10 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     };
   }, [isEditing]);
 
-  // Use either the store's baseTime or the local override from the slider
+  // Always use the global store's baseTime for display
   const displayDate = useMemo(() => {
-    const date = new Date(baseTime);
-    if (localMinutes !== null) {
-      date.setHours(Math.floor(localMinutes / 60));
-      date.setMinutes(localMinutes % 60);
-      date.setSeconds(0);
-    }
-    return toZonedTime(date, timezone);
-  }, [baseTime, timezone, localMinutes]);
+    return toZonedTime(new Date(baseTime), timezone);
+  }, [baseTime, timezone]);
 
   const timeStr = format(displayDate, 'hh:mm');
   const amPm = format(displayDate, 'a').toUpperCase();
@@ -83,20 +110,15 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
 
   const minutesInDay = (displayDate.getHours() * 60) + displayDate.getMinutes();
 
+  // Synchronize ALL cards by updating the global store's offset and baseTime
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalMinutes(parseInt(e.target.value, 10));
-  };
-
-  const handleSliderCommit = () => {
-    if (localMinutes !== null) {
-      // Calculate how many minutes we are away from the REAL "now"
-      const now = new Date();
-      const nowZoned = toZonedTime(now, timezone);
-      const nowMinutes = (nowZoned.getHours() * 60) + nowZoned.getMinutes();
-      
-      const deltaMinutes = localMinutes - nowMinutes;
-      setTimeOffset(deltaMinutes * 60000);
-      setLocalMinutes(null);
+    const newMinutes = parseInt(e.target.value, 10);
+    const deltaMinutes = newMinutes - minutesInDay;
+    
+    if (deltaMinutes !== 0) {
+      const newFullOffset = timeOffset + (deltaMinutes * 60000);
+      setTimeOffset(newFullOffset);
+      setBaseTime(Date.now() + newFullOffset);
     }
   };
 
@@ -109,36 +131,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     setIsEditing(false);
   };
 
-  // Memoize ticks for performance
-  const ticks = useMemo(() => {
-    return Array.from({ length: 97 }, (_, i) => {
-      const tickMinute = i * 15;
-      const dist = Math.abs(tickMinute - minutesInDay);
-      const isNearHandle = dist <= 60;
-      
-      let heightClass = "h-2";
-      let colorClass = "bg-zinc-800/40";
-      
-      if (i % 24 === 0) {
-        heightClass = "h-5";
-        colorClass = "bg-zinc-600";
-      } else if (i % 4 === 0) {
-        heightClass = "h-3";
-        colorClass = "bg-zinc-700";
-      }
-      
-      if (isNearHandle) {
-        colorClass = "bg-zinc-300";
-      }
-      
-      return (
-        <div 
-          key={i} 
-          className={cn("w-px", heightClass, colorClass)} 
-        />
-      );
-    });
-  }, [minutesInDay]);
+  // Remove the old local 'ticks' useMemo as it's now in TimezoneRuler
 
   const handlePosition = (minutesInDay / 1440) * 100;
 
@@ -197,6 +190,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
                 onClick={(e) => {
                   e.stopPropagation();
                   resetTime();
+                  setBaseTime(Date.now());
                 }}
                 title="Reset to current time"
               >
@@ -248,7 +242,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
             
             {/* Ticks Container */}
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between items-center h-6">
-              {ticks}
+              <TimezoneRuler minutesInDay={minutesInDay} />
             </div>
 
             {/* Labels */}
@@ -262,15 +256,12 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
 
             {/* Hidden Range Input */}
             <input
-              ref={sliderRef}
               type="range"
               min="0"
               max="1439"
               step="1"
               value={minutesInDay}
               onChange={handleSliderChange}
-              onMouseUp={handleSliderCommit}
-              onTouchEnd={handleSliderCommit}
               className="absolute inset-x-0 top-0 bottom-6 w-full opacity-0 cursor-ew-resize z-20"
             />
             
