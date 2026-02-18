@@ -29,6 +29,7 @@ model User {
   savedPasswords SavedPassword[]
   savedJwts     SavedJwt[]
   savedQrCodes  SavedQrCode[]
+  timerPresets  TimerPreset[]
 
   @@unique([email])
   @@map("user")
@@ -163,4 +164,16 @@ model SavedQrCode {
 
   @@index([userId])
   @@map("saved_qr_code")
+}
+
+model TimerPreset {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  duration  Int      // in seconds
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("timer_preset")
 }

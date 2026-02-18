@@ -19,6 +19,15 @@ import {
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { useSession } from '@/lib/auth-client';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface Preset {
   id: string;
@@ -38,6 +47,8 @@ const DEFAULT_PRESETS: Preset[] = [
 ];
 
 export default function TimerPage() {
+  const { data: session } = useSession();
+
   const [hours, setHours] = useState('00');
   const [minutes, setMinutes] = useState('10');
   const [seconds, setSeconds] = useState('00');
@@ -47,6 +58,9 @@ export default function TimerPage() {
   const [customPresets, setCustomPresets] = useState<Preset[]>([]);
   const [isCreatingPreset, setIsCreatingPreset] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
+  const [newPresetH, setNewPresetH] = useState('00');
+  const [newPresetM, setNewPresetM] = useState('10');
+  const [newPresetS, setNewPresetS] = useState('00');
   const [activePresetId, setActivePresetId] = useState<string | null>('2');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -55,9 +69,31 @@ export default function TimerPage() {
     if (saved) { try { setCustomPresets(JSON.parse(saved)); } catch (e) {} }
   }, []);
 
+  // Cloud Sync
+  useEffect(() => {
+    if (session?.user) {
+        fetch('/api/sync/timer-presets')
+            .then(res => res.json())
+            .then(data => {
+                if (data?.length) setCustomPresets(data);
+            })
+            .catch(err => console.error(err));
+    }
+  }, [session?.user]);
+
   useEffect(() => {
     localStorage.setItem('bt-timer-presets', JSON.stringify(customPresets));
-  }, [customPresets]);
+    if (session?.user) {
+        const timeout = setTimeout(() => {
+            fetch('/api/sync/timer-presets', { 
+                method: 'POST', 
+                body: JSON.stringify(customPresets), 
+                headers: { 'Content-Type': 'application/json' } 
+            });
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }
+  }, [customPresets, session?.user]);
 
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
@@ -123,18 +159,49 @@ export default function TimerPage() {
     setIsEditing(true); setIsRunning(false);
   };
 
+  const addPreset = () => {
+    if (!newPresetName.trim()) { toast.error('Name required'); return; }
+    const total = (parseInt(newPresetH) || 0) * 3600 + (parseInt(newPresetM) || 0) * 60 + (parseInt(newPresetS) || 0);
+    if (total === 0) { toast.error('Set time first'); return; }
+    
+    const newPreset: Preset = {
+        id: Math.random().toString(36).substring(2, 9),
+        name: newPresetName.trim(),
+        duration: total
+    };
+    
+    setCustomPresets(prev => [newPreset, ...prev]);
+    setNewPresetName('');
+    setIsCreatingPreset(false);
+    toast.success('Preset archived');
+  };
+
   const deletePreset = (id: string) => setCustomPresets(customPresets.filter(p => p.id !== id));
 
-  const handleInputChange = (value: string, setter: (v: string) => void, max: number) => {
-    const num = value.replace(/\D/g, '').slice(0, 2);
+  const handleInputChange = (value: string, setter: (v: string) => void, max: number, isMain: boolean = false) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits === '') {
+        setter('00');
+        if (isMain) setActivePresetId(null);
+        return;
+    }
+    
+    let num = digits;
+    if (num.length > 2) {
+        num = num.slice(-2);
+    } else {
+        num = num.padStart(2, '0');
+    }
+
     const parsed = parseInt(num) || 0;
     if (parsed <= max) {
-        setter(num.padStart(2, '0'));
-        setActivePresetId(null);
+        setter(num);
+        if (isMain) setActivePresetId(null);
     }
   };
 
   return (
+    <>
     <div className="flex flex-1 flex-col h-full bg-background overflow-hidden lg:flex-row">
       <div className="flex-1 flex flex-col p-6 md:p-12 overflow-y-auto">
         <div className="max-w-2xl mx-auto w-full flex flex-col items-center">
@@ -165,7 +232,7 @@ export default function TimerPage() {
                                 {isEditing ? (
                                     <input
                                         value={hours}
-                                        onChange={(e) => handleInputChange(e.target.value, setHours, 99)}
+                                        onChange={(e) => handleInputChange(e.target.value, setHours, 99, true)}
                                         className="w-full text-center text-5xl md:text-8xl font-bold bg-transparent outline-none tabular-nums tracking-tighter text-foreground"
                                     />
                                 ) : (
@@ -183,7 +250,7 @@ export default function TimerPage() {
                                 {isEditing ? (
                                     <input
                                         value={minutes}
-                                        onChange={(e) => handleInputChange(e.target.value, setMinutes, 59)}
+                                        onChange={(e) => handleInputChange(e.target.value, setMinutes, 59, true)}
                                         className="w-full text-center text-5xl md:text-8xl font-bold bg-transparent outline-none tabular-nums tracking-tighter text-foreground"
                                     />
                                 ) : (
@@ -201,7 +268,7 @@ export default function TimerPage() {
                                 {isEditing ? (
                                     <input
                                         value={seconds}
-                                        onChange={(e) => handleInputChange(e.target.value, setSeconds, 59)}
+                                        onChange={(e) => handleInputChange(e.target.value, setSeconds, 59, true)}
                                         className="w-full text-center text-5xl md:text-8xl font-bold bg-transparent outline-none tabular-nums tracking-tighter text-primary"
                                     />
                                 ) : (
@@ -242,13 +309,6 @@ export default function TimerPage() {
                                 </Button>
                             </>
                         )}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-14 w-14 rounded-xl border border-border/50 bg-muted/10 text-muted-foreground hover:text-foreground transition-all active:scale-95"
-                        >
-                            <Settings className="w-4 h-4" />
-                        </Button>
                     </div>
                 </motion.div>
             </div>
@@ -265,6 +325,7 @@ export default function TimerPage() {
             <Button
               variant="ghost"
               size="icon"
+              onClick={() => setIsCreatingPreset(true)}
               className="h-8 w-8 text-muted-foreground/30 hover:text-foreground rounded-lg"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -273,31 +334,13 @@ export default function TimerPage() {
 
         <div className="flex-1 overflow-y-auto p-8 space-y-10">
             <div className="space-y-4">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/20 px-1">Standard</span>
-                <div className="grid grid-cols-2 gap-2">
-                    {DEFAULT_PRESETS.map(preset => (
-                        <Button
-                        key={preset.id}
-                        onClick={() => handlePresetClick(preset)}
-                        variant="ghost"
-                        className={cn(
-                            "h-10 rounded-lg border text-[9px] font-bold uppercase tracking-widest transition-all active:scale-95",
-                            activePresetId === preset.id 
-                                ? "bg-primary text-primary-foreground border-primary shadow-sm" 
-                                : "border-border/50 bg-background hover:bg-accent hover:text-accent-foreground text-muted-foreground"
-                        )}
-                        >
-                        {preset.name}
-                        </Button>
-                    ))}
-                </div>
-            </div>
-
-            <div className="space-y-4 pt-8 border-t border-border/50">
                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/20 px-1">Custom</span>
                 <AnimatePresence mode="popLayout">
                     {customPresets.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-10 opacity-10 space-y-3 font-bold uppercase tracking-widest">
+                        <div 
+                          className="flex flex-col items-center justify-center py-10 opacity-10 space-y-3 font-bold uppercase tracking-widest cursor-pointer hover:opacity-30 transition-opacity"
+                          onClick={() => setIsCreatingPreset(true)}
+                        >
                             <Plus className="w-6 h-6" />
                             <p className="text-[8px]">Empty</p>
                         </div>
@@ -333,8 +376,90 @@ export default function TimerPage() {
                     )}
                 </AnimatePresence>
             </div>
+
+            <div className="space-y-4 pt-8 border-t border-border/50">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/20 px-1">Standard</span>
+                <div className="grid grid-cols-2 gap-2">
+                    {DEFAULT_PRESETS.map(preset => (
+                        <Button
+                        key={preset.id}
+                        onClick={() => handlePresetClick(preset)}
+                        variant="ghost"
+                        className={cn(
+                            "h-10 rounded-lg border text-[9px] font-bold uppercase tracking-widest transition-all active:scale-95",
+                            activePresetId === preset.id 
+                                ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+                                : "border-border/50 bg-background hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                        )}
+                        >
+                        {preset.name}
+                        </Button>
+                    ))}
+                </div>
+            </div>
         </div>
       </div>
     </div>
+
+    <Dialog open={isCreatingPreset} onOpenChange={setIsCreatingPreset}>
+        <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle className="text-xs font-bold uppercase tracking-widest">Archive Configuration</DialogTitle>
+                <p className="text-[10px] text-muted-foreground uppercase font-medium">Save the current temporal cycle as a preset profile.</p>
+            </DialogHeader>
+            <div className="py-6 space-y-6">
+                <div className="space-y-2">
+                    <Label htmlFor="name" className="text-[9px] font-bold uppercase tracking-widest px-1">Profile Name</Label>
+                    <Input
+                        id="name"
+                        value={newPresetName}
+                        onChange={(e) => setNewPresetName(e.target.value)}
+                        placeholder="E.G. DEEP FOCUS"
+                        className="h-12 bg-muted/20 border-border/50 text-xs font-bold tracking-widest uppercase px-4"
+                        autoFocus
+                    />
+                </div>
+                
+                <div className="space-y-4">
+                    <Label className="text-[9px] font-bold uppercase tracking-widest px-1 text-muted-foreground/50">Duration Configuration</Label>
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                            <Input
+                                value={newPresetH}
+                                onChange={(e) => handleInputChange(e.target.value, setNewPresetH, 99)}
+                                className="h-14 text-center text-2xl font-bold bg-muted/20 border-border/50 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all tabular-nums rounded-xl"
+                            />
+                            <p className="text-center text-[9px] uppercase font-bold text-muted-foreground/30 tracking-tight">Hours</p>
+                        </div>
+                        <div className="space-y-2">
+                            <Input
+                                value={newPresetM}
+                                onChange={(e) => handleInputChange(e.target.value, setNewPresetM, 59)}
+                                className="h-14 text-center text-2xl font-bold bg-muted/20 border-border/50 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all tabular-nums rounded-xl"
+                            />
+                            <p className="text-center text-[9px] uppercase font-bold text-muted-foreground/30 tracking-tight">Minutes</p>
+                        </div>
+                        <div className="space-y-2">
+                            <Input
+                                value={newPresetS}
+                                onChange={(e) => handleInputChange(e.target.value, setNewPresetS, 59)}
+                                className="h-14 text-center text-2xl font-bold bg-primary/5 border-primary/20 text-primary focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all tabular-nums rounded-xl shadow-[0_0_15px_-5px_rgba(var(--primary),0.1)]"
+                            />
+                            <p className="text-center text-[9px] uppercase font-bold text-primary/40 tracking-tight">Seconds</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <DialogFooter>
+                <Button 
+                    onClick={addPreset}
+                    className="w-full h-12 bg-primary text-primary-foreground font-bold uppercase tracking-widest text-[10px] rounded-lg"
+                >
+                    Archive Profile
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
