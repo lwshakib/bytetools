@@ -1,3 +1,7 @@
+/**
+ * Static dataset containing city information and their corresponding timezones.
+ * This is used for searching and adding new timezones to the world clock tool.
+ */
 export interface CityData {
   city: string;
   country: string;
