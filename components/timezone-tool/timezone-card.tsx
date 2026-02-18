@@ -1,3 +1,7 @@
+/**
+ * Component representing a single timezone card in the world clock grid.
+ * Displays current time, date, and provides a synchronous slider to adjust time across all cards.
+ */
 "use client";
 
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
@@ -25,20 +29,27 @@ interface TimezoneCardProps {
   timezone: string;
 }
 
+/**
+ * Memoized ruler background for the timezone slider.
+ * Renders ticks representing 15-minute and 1-hour intervals.
+ */
 const TimezoneRuler = React.memo(({ minutesInDay }: { minutesInDay: number }) => {
   const ticks = useMemo(() => {
     return Array.from({ length: 97 }, (_, i) => {
       const tickMinute = i * 15;
       const dist = Math.abs(tickMinute - minutesInDay);
+      // Highlights ticks that are close to the current slider handle.
       const isNearHandle = dist <= 60;
       
       let heightClass = "h-2";
       let colorClass = "bg-zinc-800/40";
       
       if (i % 24 === 0) {
+        // Major ticks for primary hours (0, 6, 12, 18, 24).
         heightClass = "h-5";
         colorClass = "bg-zinc-600";
       } else if (i % 4 === 0) {
+        // Intermediate ticks for every hour.
         heightClass = "h-3";
         colorClass = "bg-zinc-700";
       }
@@ -70,6 +81,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
   const cardRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLInputElement>(null);
 
+  // Update the live clock every second when the full-screen modal is open.
   useEffect(() => {
     if (isClockOpen) {
       const timer = setInterval(() => setLiveNow(new Date()), 1000);
@@ -77,6 +89,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     }
   }, [isClockOpen]);
 
+  // Convert current system time to the specific timezone for the live clock display.
   const zonedLiveDate = useMemo(() => {
     return toZonedTime(liveNow, timezone);
   }, [liveNow, timezone]);
@@ -84,6 +97,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
   const canDelete = selectedTimezones.length > 1 && id !== 'local';
   const isSelected = selectedId === id;
   
+  // Close search mode if clicking outside.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
@@ -98,7 +112,10 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     };
   }, [isEditing]);
 
-  // Always use the global store's baseTime for display
+  /**
+   * displayDate is calculated based on the global baseTime (which changes as you slide).
+   * This ensures all cards stay perfectly synchronized during time-scrubbing.
+   */
   const displayDate = useMemo(() => {
     return toZonedTime(new Date(baseTime), timezone);
   }, [baseTime, timezone]);
@@ -110,7 +127,10 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
 
   const minutesInDay = (displayDate.getHours() * 60) + displayDate.getMinutes();
 
-  // Synchronize ALL cards by updating the global store's offset and baseTime
+  /**
+   * Synchronizes ALL cards by updating the global store's offset and baseTime.
+   * This is the core logic that enables cross-timezone time scrubbing.
+   */
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newMinutes = parseInt(e.target.value, 10);
     const deltaMinutes = newMinutes - minutesInDay;
@@ -130,8 +150,6 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
     });
     setIsEditing(false);
   };
-
-  // Remove the old local 'ticks' useMemo as it's now in TimezoneRuler
 
   const handlePosition = (minutesInDay / 1440) * 100;
 
@@ -153,7 +171,6 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
         />
       ) : (
         <div className="flex-1 flex flex-col justify-between px-6 py-4">
-          {/* Accent Gradient */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-border to-transparent opacity-50 group-hover:opacity-100" />
 
           <div className="flex justify-between items-start z-10">
@@ -182,6 +199,8 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
                 </div>
               </div>
             </div>
+            
+            {/* Tool Action Buttons (Reset, Clock, Settings, Delete) */}
             <div className="flex gap-0.5 translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-opacity duration-200">
               <Button 
                 variant="ghost" 
@@ -235,17 +254,14 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
             </div>
           </div>
 
-          {/* Slider Area */}
+          {/* Slider scrubbing area */}
           <div className="relative h-14 mt-auto select-none">
-            {/* Ruler Line */}
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-border" />
             
-            {/* Ticks Container */}
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between items-center h-6">
               <TimezoneRuler minutesInDay={minutesInDay} />
             </div>
 
-            {/* Labels */}
             <div className="absolute bottom-0 inset-x-0 flex justify-between text-[10px] text-primary font-medium">
               <span>00</span>
               <span>06</span>
@@ -254,7 +270,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
               <span>24</span>
             </div>
 
-            {/* Hidden Range Input */}
+            {/* Range input layer to capture interaction */}
             <input
               type="range"
               min="0"
@@ -265,7 +281,7 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
               className="absolute inset-x-0 top-0 bottom-6 w-full opacity-0 cursor-ew-resize z-20"
             />
             
-            {/* Visual Handle */}
+            {/* Visual scrubbing handle */}
             <div 
               className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 pointer-events-none z-10"
               style={{ left: `${handlePosition}%` }}
@@ -280,9 +296,9 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({ id, city, country, t
       )}
     </Card>
 
+      {/* Full-screen analog/digital clock modal */}
       <Dialog open={isClockOpen} onOpenChange={setIsClockOpen}>
         <DialogContent showCloseButton={false} className="sm:max-w-[450px] border-border bg-background/95 backdrop-blur-2xl shadow-2xl p-0 overflow-hidden ring-1 ring-white/5">
-          {/* Decorative background glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
           
           <div className="relative z-10 flex flex-col pt-12">

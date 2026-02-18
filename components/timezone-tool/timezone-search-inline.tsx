@@ -1,3 +1,7 @@
+/**
+ * Inline search component for selecting a timezone from the static cities dataset.
+ * Uses cmdk for a fast, keyboard-friendly search experience.
+ */
 "use client";
 
 import React from 'react';
@@ -28,6 +32,7 @@ export const TimezoneSearchInline: React.FC<TimezoneSearchInlineProps> = ({
     <Command className="bg-transparent h-full flex flex-col p-0 m-0">
       <div className="flex items-center px-4 h-11 bg-transparent border-none shrink-0">
         <Globe className="h-4 w-4 text-muted-foreground mr-3 shrink-0" />
+        {/* Native Command input is wrapped for direct style control */}
         <CommandPrimitive.Input 
           placeholder={placeholder}
           className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground/50 border-none focus:ring-0 h-full w-full"
@@ -44,14 +49,18 @@ export const TimezoneSearchInline: React.FC<TimezoneSearchInlineProps> = ({
         </button>
       </div>
       <div className="h-px bg-border/50 mx-4 shrink-0" />
+      
       <CommandList className="flex-1 overflow-y-auto px-1 pb-2 pt-0 scrollbar-none">
         <CommandEmpty className="py-2 text-center text-muted-foreground text-[11px] italic font-medium">
           No results found.
         </CommandEmpty>
+        
         <CommandGroup className="p-0">
           {cities.map((city, index) => {
+            // Display the current GMT offset next to each search result.
             const now = new Date();
             const offset = formatInTimeZone(now, city.timezone, 'xxx');
+            
             return (
               <CommandItem
                 key={`${city.city}-${index}`}

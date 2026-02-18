@@ -1,3 +1,7 @@
+/**
+ * Component representing the "Add Timezone" card in the world clock grid.
+ * Provides search functionality to add new locations when the user is logged in.
+ */
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -11,11 +15,13 @@ import { useSession } from '@/lib/auth-client';
 import { Globe } from 'lucide-react';
 
 export const AddTimezoneCard = () => {
+  // Local state to toggle between the "Add" button and the search interface.
   const [isSearching, setIsSearching] = useState(false);
   const { addTimezone } = useTimezoneStore();
   const { data: session } = useSession();
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // Close search mode if the user clicks outside the card.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
@@ -30,6 +36,10 @@ export const AddTimezoneCard = () => {
     };
   }, [isSearching]);
 
+  /**
+   * Called when a city is selected from the search results.
+   * Generates a unique ID and persists the new timezone to the global store.
+   */
   const handleSelect = (city: CityData) => {
     addTimezone({
       id: `${city.city.toLowerCase()}-${Date.now()}`,
@@ -50,6 +60,7 @@ export const AddTimezoneCard = () => {
       )}
       onClick={() => isSearching || !session?.user ? null : setIsSearching(true)}
     >
+      {/* If the user is unauthenticated, show a sign-in overlay */}
       {!session?.user ? (
         <div 
           className="absolute inset-0 z-20 flex items-center justify-center bg-background/5 cursor-pointer group/auth"
@@ -66,6 +77,7 @@ export const AddTimezoneCard = () => {
           </div>
         </div>
       ) : !isSearching ? (
+        // Standard "Add" button view.
         <>
           <div className="bg-accent p-4 rounded-full mb-2 transform transition-transform group-hover:scale-110">
             <Plus className="h-8 w-8 text-muted-foreground" />
@@ -73,6 +85,7 @@ export const AddTimezoneCard = () => {
           <span className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Add Timezone</span>
         </>
       ) : (
+        // Active search interface view.
         <TimezoneSearchInline 
           onSelect={handleSelect} 
           onClose={() => setIsSearching(false)} 
