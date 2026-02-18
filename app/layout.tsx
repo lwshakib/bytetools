@@ -46,6 +46,8 @@ export const metadata: Metadata = {
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthModal } from "@/components/auth-modal";
+import { VerificationListener } from "@/components/verification-listener";
 
 export default function RootLayout({
   children,
@@ -65,6 +67,8 @@ export default function RootLayout({
         >
           {children}
           <Toaster />
+          <AuthModal />
+          <VerificationListener />
         </ThemeProvider>
       </body>
     </html>

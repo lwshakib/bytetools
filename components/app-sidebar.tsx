@@ -108,9 +108,11 @@ const data = {
   ],
 }
 
+import { useAuthModal } from "@/hooks/use-auth-modal"
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession()
-  const [isAuthModalOpen, setIsAuthModalOpen] = React.useState(false)
+  const { onOpen } = useAuthModal()
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -132,7 +134,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             id="signin-trigger"
             variant="ghost" 
             className="w-full justify-start gap-4 px-4 h-12 text-muted-foreground hover:text-foreground hover:bg-accent transition-all group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:justify-center"
-            onClick={() => setIsAuthModalOpen(true)}
+            onClick={() => onOpen("login")}
           >
             <LogIn className="h-4 w-4 shrink-0" />
             <span className="truncate font-medium group-data-[collapsible=icon]:hidden">Sign In</span>
@@ -140,7 +142,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         )}
       </SidebarFooter>
       <SidebarRail />
-      <AuthModal isOpen={isAuthModalOpen} onOpenChange={setIsAuthModalOpen} />
     </Sidebar>
   )
 }
