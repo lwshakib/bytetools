@@ -49,12 +49,15 @@ interface Routine {
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+import { Skeleton } from '@/components/ui/skeleton';
+
 export default function DailyPlannerPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [activeTab, setActiveTab] = useState('daily');
   const [baseDate, setBaseDate] = useState<Date>(startOfToday());
   const [showCompletedDump, setShowCompletedDump] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { data: session } = useSession();
 
@@ -69,8 +72,16 @@ export default function DailyPlannerPage() {
   // Sync with DB
   useEffect(() => {
     if (session?.user) {
-      fetch('/api/sync/tasks').then(res => res.json()).then(data => { if (data?.length) setTasks(data); });
-      fetch('/api/sync/routines').then(res => res.json()).then(data => { if (data?.length) setRoutines(data); });
+      setIsLoading(true);
+      Promise.all([
+        fetch('/api/sync/tasks').then(res => res.json()),
+        fetch('/api/sync/routines').then(res => res.json())
+      ]).then(([taskData, routineData]) => {
+          if (taskData?.length) setTasks(taskData);
+          if (routineData?.length) setRoutines(routineData);
+      })
+      .catch(err => console.error(err))
+      .finally(() => setIsLoading(false));
     }
   }, [session?.user]);
 
@@ -211,19 +222,39 @@ export default function DailyPlannerPage() {
         <div className="flex-1 overflow-hidden relative">
           <TabsContent value="daily" className="m-0 h-full">
             <div className="flex h-full p-6 gap-6 overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {currentColumns.map((date) => (
-                <DayColumn 
-                  key={format(date, 'yyyy-MM-dd')}
-                  date={date}
-                  tasks={tasks}
-                  routines={routines}
-                  pendingTasks={getPendingTasks(format(date, 'yyyy-MM-dd'))}
-                  onAddTask={(text) => addTask(text, format(date, 'yyyy-MM-dd'), 'daily')}
-                  onToggleTask={toggleTask}
-                  onDeleteTask={deleteTask}
-                  session={session}
-                />
-              ))}
+              {isLoading ? (
+                Array.from({ length: columnCount }).map((_, i) => (
+                  <div key={i} className="flex flex-col h-full rounded-xl bg-card/40 border border-border/50 overflow-hidden min-w-[300px] md:min-w-0 transition-all shadow-sm">
+                    <div className="p-5 pb-3 flex items-center justify-between border-b border-border/5">
+                        <div className="flex flex-col gap-1 w-full">
+                            <Skeleton className="h-3 w-1/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </div>
+                    </div>
+                    <div className="flex-1 p-4 space-y-4">
+                        <div className="space-y-2">
+                            <Skeleton className="h-10 w-full rounded-lg" />
+                            <Skeleton className="h-10 w-full rounded-lg" />
+                            <Skeleton className="h-10 w-full rounded-lg" />
+                        </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                currentColumns.map((date) => (
+                  <DayColumn 
+                    key={format(date, 'yyyy-MM-dd')}
+                    date={date}
+                    tasks={tasks}
+                    routines={routines}
+                    pendingTasks={getPendingTasks(format(date, 'yyyy-MM-dd'))}
+                    onAddTask={(text) => addTask(text, format(date, 'yyyy-MM-dd'), 'daily')}
+                    onToggleTask={toggleTask}
+                    onDeleteTask={deleteTask}
+                    session={session}
+                  />
+                ))
+              )}
             </div>
           </TabsContent>
 

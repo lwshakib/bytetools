@@ -25,6 +25,8 @@ import { useSession } from '@/lib/auth-client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
+import { Skeleton } from '@/components/ui/skeleton';
+
 export default function PasswordGeneratorPage() {
   const { data: session } = useSession();
   const [password, setPassword] = useState('');
@@ -38,6 +40,7 @@ export default function PasswordGeneratorPage() {
   
   const [savedPasswords, setSavedPasswords] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [passwordName, setPasswordName] = useState('');
 
   const generatePassword = useCallback(() => {
@@ -96,12 +99,15 @@ export default function PasswordGeneratorPage() {
 
   const fetchSavedPasswords = async () => {
     if (!session?.user) return;
+    setIsLoading(true);
     try {
         const res = await fetch('/api/passwords');
         const data = await res.json();
         setSavedPasswords(data);
     } catch (err) {
         console.error(err);
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -284,7 +290,18 @@ export default function PasswordGeneratorPage() {
                             <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground/50">Saved Passwords</CardTitle>
                         </CardHeader>
                         <CardContent className="p-8 pt-0">
-                            {savedPasswords.length === 0 ? (
+                            {isLoading ? (
+                                <div className="space-y-2">
+                                    {Array.from({ length: 3 }).map((_, i) => (
+                                        <div key={i} className="flex items-center justify-between p-3 bg-muted/10 border border-border/50 rounded-lg">
+                                            <div className="flex flex-col gap-2 w-full">
+                                                <Skeleton className="h-3 w-1/3" />
+                                                <Skeleton className="h-2 w-1/4" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : savedPasswords.length === 0 ? (
                                 <div className="py-12 flex flex-col items-center justify-center text-center space-y-3 opacity-20">
                                     <Shield className="w-8 h-8" />
                                     <p className="text-[10px] font-bold uppercase tracking-widest">No passwords saved</p>
