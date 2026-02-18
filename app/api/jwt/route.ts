@@ -1,8 +1,15 @@
+/**
+ * API route for persisting and managing saved JWTs.
+ * Securely stores tokens and secrets in the database associated with the logged-in user.
+ */
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 
+/**
+ * Retrieves all saved JWTs for the authenticated user.
+ */
 export async function GET() {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -20,6 +27,9 @@ export async function GET() {
     return NextResponse.json(jwts);
 }
 
+/**
+ * Saves a new JWT to the database.
+ */
 export async function POST(req: Request) {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -47,6 +57,9 @@ export async function POST(req: Request) {
     return NextResponse.json(savedJwt);
 }
 
+/**
+ * Deletes a saved JWT.
+ */
 export async function DELETE(req: Request) {
     const session = await auth.api.getSession({
         headers: await headers()
