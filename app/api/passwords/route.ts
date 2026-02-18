@@ -1,9 +1,17 @@
+/**
+ * API route for the Password Vault.
+ * Provides secure endpoints to save, retrieve, and delete passwords.
+ * All passwords are encrypted before being stored in the database.
+ */
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { encrypt, decrypt } from "@/lib/encryption";
 
+/**
+ * Retrieves all saved passwords for the authenticated user and decrypts them.
+ */
 export async function GET() {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -18,7 +26,7 @@ export async function GET() {
         orderBy: { createdAt: 'desc' }
     });
 
-    // Decrypt passwords for the UI
+    // Decrypt the stored encrypted strings back into plain text for the user.
     const decryptedPasswords = passwords.map(p => {
         try {
             return {
@@ -26,6 +34,7 @@ export async function GET() {
                 value: decrypt(p.hashedValue)
             };
         } catch (e) {
+            // If decryption fails, provide a redacted placeholder to avoid crashing the UI.
             return {
                 ...p,
                 value: '[REDACTED HASH]'
@@ -36,6 +45,9 @@ export async function GET() {
     return NextResponse.json(decryptedPasswords);
 }
 
+/**
+ * Encrypts and saves a new password to the user's vault.
+ */
 export async function POST(req: Request) {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -51,7 +63,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Password value is required" }, { status: 400 });
     }
 
-    // Encrypting for retrieval as requested (secure two-way storage)
+    // Encrypt the password value before it ever hits the database.
     const encryptedValue = encrypt(value);
 
     const savedPassword = await prisma.savedPassword.create({
@@ -64,10 +76,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
         ...savedPassword,
-        value
+        value // Return the original value for immediate UI update.
     });
 }
 
+/**
+ * Removes a password entry from the vault.
+ */
 export async function DELETE(req: Request) {
     const session = await auth.api.getSession({
         headers: await headers()
