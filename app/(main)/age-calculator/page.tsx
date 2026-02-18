@@ -63,7 +63,7 @@ export default function AgeCalculatorPage() {
   return (
     <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">
       <div className="flex-1 flex flex-col p-6 md:p-12">
-        <div className="max-w-2xl mx-auto w-full flex flex-col items-center">
+        <div className="max-w-5xl mx-auto w-full flex flex-col items-center">
           {/* Header Section */}
           <div className="flex flex-col items-center text-center space-y-4 mb-20 w-full">
             <motion.div 

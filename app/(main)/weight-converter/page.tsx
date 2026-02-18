@@ -23,11 +23,8 @@ const WEIGHT_UNITS = [
   { code: 't', name: 'Metric Tons', symbol: 't' },
 ];
 
-// Convert to grams first, then to target unit
 const convertWeight = (value: number, from: string, to: string): number => {
   if (from === to) return value;
-  
-  // Convert to grams
   let grams = 0;
   switch (from) {
     case 'kg': grams = value * 1000; break;
@@ -39,8 +36,6 @@ const convertWeight = (value: number, from: string, to: string): number => {
     case 't': grams = value * 1000000; break;
     default: grams = value;
   }
-  
-  // Convert from grams to target
   switch (to) {
     case 'kg': return grams / 1000;
     case 'g': return grams;
@@ -76,13 +71,13 @@ export default function WeightConverterPage() {
     setToUnit('lb');
   };
 
-  const fromUnitData = WEIGHT_UNITS.find(u => u.code === fromUnit);
-  const toUnitData = WEIGHT_UNITS.find(u => u.code === toUnit);
+  const sourceUnit = WEIGHT_UNITS.find(u => u.code === fromUnit) || WEIGHT_UNITS[0];
+  const targetUnit = WEIGHT_UNITS.find(u => u.code === toUnit) || WEIGHT_UNITS[0];
 
   return (
     <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">
       <div className="flex-1 flex flex-col p-6 md:p-12">
-        <div className="max-w-2xl mx-auto w-full flex flex-col items-center">
+        <div className="max-w-5xl mx-auto w-full flex flex-col items-center">
           {/* Header Section */}
           <div className="flex flex-col items-center text-center space-y-4 mb-20 w-full">
             <motion.div 
@@ -93,7 +88,7 @@ export default function WeightConverterPage() {
               <Scale className="w-3.5 h-3.5 text-primary" />
               Weight Conversion
             </motion.div>
-            <p className="text-muted-foreground text-[10px] font-medium uppercase tracking-[0.2em] opacity-40">Precision Unit Transformation Interface</p>
+            <p className="text-muted-foreground text-[10px] font-medium uppercase tracking-[0.2em] opacity-40">High-Precision Mass Translation</p>
           </div>
 
           {/* Main Converter card */}
@@ -104,121 +99,126 @@ export default function WeightConverterPage() {
               animate={{ opacity: 1, y: 0 }}
               className="relative flex flex-col p-8 md:p-14 bg-card/40 border border-border/50 rounded-xl shadow-xl backdrop-blur-md w-full overflow-hidden"
             >
-              <div className="grid grid-cols-1 gap-12">
-                <div className="grid grid-cols-1 md:grid-cols-[1fr,auto,1fr] gap-6 items-start">
-                  {/* From Unit */}
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-8 lg:gap-12">
+                {/* Source Section */}
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center px-1">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">From</Label>
+                    <span className="text-[10px] font-bold text-primary/60">{sourceUnit.name}</span>
+                  </div>
                   <div className="space-y-4">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 px-1">Source</Label>
-                    <div className="space-y-3">
-                      <Select value={fromUnit} onValueChange={setFromUnit}>
-                        <SelectTrigger className="h-12 bg-muted/20 border-border/50 rounded-lg text-[11px] font-bold uppercase tracking-widest">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-lg border-border/50">
-                          {WEIGHT_UNITS.map((unit) => (
-                            <SelectItem key={unit.code} value={unit.code} className="text-[10px] font-bold uppercase tracking-widest">
-                              {unit.code.toUpperCase()} — {unit.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                          className="h-14 text-2xl font-bold bg-background/40 border-border/50 rounded-lg pr-4 tabular-nums"
-                          placeholder="0.00"
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 text-xs font-bold uppercase tracking-widest">
-                          {fromUnitData?.symbol}
-                        </div>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="h-20 text-4xl font-bold bg-background/40 border-border/50 rounded-lg pr-12 tabular-nums"
+                        placeholder="0.00"
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 font-bold uppercase tracking-widest text-xs">
+                        {sourceUnit.symbol}
                       </div>
                     </div>
-                  </div>
-
-                  {/* Swap Button container */}
-                  <div className="flex md:flex-col items-center justify-center pt-8 md:pt-14 h-full">
-                    <Button
-                      onClick={handleSwap}
-                      variant="ghost"
-                      size="icon"
-                      className="h-12 w-12 rounded-lg border border-border/50 bg-muted/5 hover:bg-primary/5 hover:border-primary/20 transition-all active:scale-95 group"
-                    >
-                      <ArrowRightLeft className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </Button>
-                  </div>
-
-                  {/* To Unit */}
-                  <div className="space-y-4">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 px-1">Target</Label>
-                    <div className="space-y-3">
-                      <Select value={toUnit} onValueChange={setToUnit}>
-                        <SelectTrigger className="h-12 bg-muted/20 border-border/50 rounded-lg text-[11px] font-bold uppercase tracking-widest">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-lg border-border/50">
-                          {WEIGHT_UNITS.map((unit) => (
-                            <SelectItem key={unit.code} value={unit.code} className="text-[10px] font-bold uppercase tracking-widest">
-                              {unit.code.toUpperCase()} — {unit.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <div className="relative">
-                        <Input
-                          readOnly
-                          value={convertedAmount}
-                          className="h-14 text-2xl font-bold bg-primary/5 border-primary/20 rounded-lg text-primary pr-4 tabular-nums shadow-[0_0_15px_-5px_rgba(var(--primary),0.1)]"
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-primary/30 text-xs font-bold uppercase tracking-widest">
-                          {toUnitData?.symbol}
-                        </div>
-                      </div>
-                    </div>
+                    <Select value={fromUnit} onValueChange={setFromUnit}>
+                      <SelectTrigger className="h-12 bg-background/40 border-border/50 rounded-lg font-bold text-xs uppercase tracking-widest">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-border shadow-2xl">
+                        {WEIGHT_UNITS.map((u) => (
+                          <SelectItem key={u.code} value={u.code} className="text-xs font-bold uppercase tracking-widest">
+                            {u.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
-                {/* Conversion Rate Display */}
-                <div className="pt-8 border-t border-border/50">
-                  <div className="flex items-center justify-between p-5 bg-muted/5 rounded-lg border border-border/50">
-                    <div className="space-y-1">
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30">Conversion Formula</span>
-                      <p className="text-sm font-bold font-mono tracking-tight text-foreground">
-                        1 {fromUnit.toUpperCase()} = {convertWeight(1, fromUnit, toUnit).toFixed(6).replace(/\.?0+$/, '')} {toUnit.toUpperCase()}
-                      </p>
-                    </div>
-                    <Button
-                      onClick={handleReset}
-                      variant="ghost"
-                      size="icon"
-                      className="h-10 w-10 rounded-lg border border-border/50 hover:bg-muted transition-all text-muted-foreground"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                    </Button>
-                  </div>
+                {/* Swap Button */}
+                <div className="flex justify-center lg:pt-10">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleSwap}
+                    className="w-12 h-12 rounded-full bg-primary/5 border border-border/50 hover:bg-primary/10 transition-all group"
+                  >
+                    <ArrowRightLeft className="w-5 h-5 text-primary rotate-90 lg:rotate-0 transition-transform group-active:scale-90" />
+                  </Button>
                 </div>
 
-                {/* Quick Conversions Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { label: 'Kilograms', value: convertWeight(parseFloat(amount) || 0, fromUnit, 'kg').toFixed(2), unit: 'kg' },
-                    { label: 'Pounds', value: convertWeight(parseFloat(amount) || 0, fromUnit, 'lb').toFixed(2), unit: 'lb' },
-                    { label: 'Ounces', value: convertWeight(parseFloat(amount) || 0, fromUnit, 'oz').toFixed(2), unit: 'oz' },
-                    { label: 'Grams', value: convertWeight(parseFloat(amount) || 0, fromUnit, 'g').toFixed(2), unit: 'g' },
-                  ].map((conv, i) => (
-                    <div key={i} className="p-4 bg-muted/10 border border-border/50 rounded-lg text-center space-y-1 group hover:border-primary/20 transition-colors">
-                      <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/30 block group-hover:text-primary/40 transition-colors">
-                        {conv.label}
-                      </span>
-                      <p className="text-sm font-bold font-mono tabular-nums text-foreground">
-                        {conv.value} {conv.unit}
-                      </p>
+                {/* Target Section */}
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center px-1">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">To</Label>
+                    <span className="text-[10px] font-bold text-primary/60">{targetUnit.name}</span>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <div className="h-20 flex items-center px-6 bg-primary/5 border border-primary/20 rounded-lg overflow-hidden group">
+                        <span className="text-4xl font-bold tracking-tighter tabular-nums text-primary truncate">
+                          {convertedAmount === "0.00" ? "0" : convertedAmount}
+                        </span>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-primary/40 font-bold uppercase tracking-widest text-xs">
+                          {targetUnit.symbol}
+                        </div>
+                      </div>
                     </div>
-                  ))}
+                    <Select value={toUnit} onValueChange={setToUnit}>
+                      <SelectTrigger className="h-12 bg-background/40 border-border/50 rounded-lg font-bold text-xs uppercase tracking-widest">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-border shadow-2xl">
+                        {WEIGHT_UNITS.map((u) => (
+                          <SelectItem key={u.code} value={u.code} className="text-xs font-bold uppercase tracking-widest">
+                            {u.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
+
+              {/* Conversion Stats */}
+              <div className="mt-12 pt-8 border-t border-border/50 flex flex-wrap items-center justify-between gap-6">
+                <div className="flex flex-wrap gap-10">
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30 block">Reference Rate</span>
+                    <p className="text-xs font-bold tabular-nums">1 {sourceUnit.code} = {(parseFloat(convertedAmount) / (parseFloat(amount) || 1)).toFixed(4)} {targetUnit.code}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30 block">Precision</span>
+                    <div className="flex gap-1.5 items-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                      <p className="text-xs font-bold uppercase tracking-widest">Active Resolution</p>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleReset}
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-full border border-border/50 hover:bg-muted transition-all text-muted-foreground"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              </div>
             </motion.div>
+          </div>
+
+          {/* Quick Stats Grid */}
+          <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mb-24">
+            {[
+              { label: 'Kilograms', value: convertWeight(parseFloat(amount) || 0, fromUnit, 'kg').toFixed(2), unit: 'kg' },
+              { label: 'Pounds', value: convertWeight(parseFloat(amount) || 0, fromUnit, 'lb').toFixed(2), unit: 'lb' },
+              { label: 'Ounces', value: convertWeight(parseFloat(amount) || 0, fromUnit, 'oz').toFixed(2), unit: 'oz' },
+              { label: 'Grams', value: convertWeight(parseFloat(amount) || 0, fromUnit, 'g').toFixed(2), unit: 'g' },
+            ].map((conv, i) => (
+              <div key={i} className="p-6 bg-card/40 border border-border/50 rounded-xl space-y-2">
+                <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/30">{conv.label}</span>
+                <p className="text-lg font-bold tabular-nums text-foreground">{conv.value} <span className="text-[10px] text-muted-foreground ml-1">{conv.unit}</span></p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
