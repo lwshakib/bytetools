@@ -454,23 +454,16 @@ function RoutineTab({ routines, onAddRoutine, onDeleteRoutine }: { routines: Rou
           <Button onClick={handleCommit} className="h-9 px-4 bg-primary text-primary-foreground hover:opacity-90 rounded-md font-bold uppercase tracking-widest text-[10px] w-full transition-all active:scale-95">Add Routine</Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-2">
         {routines.map(r => (
-          <div key={r.id} className="p-6 bg-card border border-border/50 rounded-xl space-y-4 group hover:border-primary/20 transition-all shadow-sm relative overflow-hidden">
-            <div className="flex items-center justify-between">
-                <div className="px-2.5 py-1 bg-primary/5 border border-primary/10 rounded-full">
-                    <span className="text-[8px] font-bold uppercase tracking-widest text-primary">{r.frequency}</span>
+          <div key={r.id} className="flex items-center justify-between p-3 bg-muted/20 border border-border/50 rounded-lg group hover:border-primary/20 transition-all">
+            <div className="flex items-center gap-3">
+                <div className="px-2 py-0.5 bg-primary/5 border border-primary/10 rounded-full">
+                    <span className="text-[8px] font-bold uppercase tracking-tight text-primary/60">{r.frequency}</span>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive rounded-lg transition-all" onClick={() => onDeleteRoutine(r.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                <p className="text-xs font-medium text-foreground">{r.text}</p>
             </div>
-            <p className="text-sm font-bold text-foreground leading-tight">{r.text}</p>
-            {(r.frequency === 'weekly' || r.frequency === 'bi-weekly') && (
-                <div className="flex gap-1.5 pt-2 border-t border-border/5">
-                    {r.selectedDays.map(d => (
-                        <span key={d} className="text-[8px] font-bold uppercase tracking-tight text-muted-foreground/40">{WEEKDAYS[d]}</span>
-                    ))}
-                </div>
-            )}
+            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive rounded-md transition-all" onClick={() => onDeleteRoutine(r.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
           </div>
         ))}
       </div>
