@@ -187,7 +187,7 @@ function Calendar({
                         onClick={() => {
                           const changeEvent = {
                             target: { value: option.value },
-                          } as React.ChangeEvent<HTMLSelectElement>
+                          } as unknown as React.ChangeEvent<HTMLSelectElement>
                           onChange?.(changeEvent)
                         }}
                         className={cn(
