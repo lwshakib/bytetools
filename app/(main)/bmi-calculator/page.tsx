@@ -107,12 +107,12 @@ export default function BMICalculatorPage() {
 
   return (
     <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">
-      <div className="flex-1 flex flex-col p-6 md:p-12">
+      <div className="flex-1 flex flex-col p-4 md:p-12">
         <div className="max-w-5xl mx-auto w-full flex flex-col items-center">
           {/* 
               Header Section: Title and branding for the BMI Analysis tool.
           */}
-          <div className="flex flex-col items-center text-center space-y-4 mb-20 w-full">
+          <div className="flex flex-col items-center text-center space-y-4 mb-12 md:mb-20 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -134,16 +134,16 @@ export default function BMICalculatorPage() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative flex flex-col p-8 md:p-14 bg-card/40 border border-border/50 rounded-xl shadow-xl backdrop-blur-md w-full overflow-hidden"
+              className="relative flex flex-col p-6 sm:p-8 md:p-14 bg-card/40 border border-border/50 rounded-xl shadow-xl backdrop-blur-md w-full overflow-hidden"
             >
-              <div className="grid grid-cols-1 gap-12">
+              <div className="grid grid-cols-1 gap-8 md:gap-12">
                 <Tabs value={unit} onValueChange={(v) => setUnit(v as 'metric' | 'imperial')} className="w-full">
                   <TabsList className="grid w-full grid-cols-2 h-12 bg-muted/20 p-1 rounded-lg border border-border/50">
                     <TabsTrigger value="metric" className="rounded-md text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-background">Metric</TabsTrigger>
                     <TabsTrigger value="imperial" className="rounded-md text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-background">Imperial</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="metric" className="mt-10 space-y-10">
+                  <TabsContent value="metric" className="mt-8 md:mt-10 space-y-8 md:space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                        <div className="space-y-4">
                         <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 px-1">Height (cm)</Label>
@@ -186,7 +186,7 @@ export default function BMICalculatorPage() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="imperial" className="mt-10 space-y-10">
+                  <TabsContent value="imperial" className="mt-8 md:mt-10 space-y-8 md:space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="space-y-4">
                         <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 px-1">Feet</Label>
@@ -231,11 +231,11 @@ export default function BMICalculatorPage() {
                     {/* Numeric and Categorical Analysis */}
                     <div className="text-center space-y-4">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30">Result Analysis</span>
-                      <div className="flex items-baseline justify-center gap-3">
-                        <span className={cn("text-[80px] md:text-[120px] font-bold tracking-tighter tabular-nums leading-none", bmiResult.color)}>
+                      <div className="flex items-baseline justify-center gap-2 md:gap-3">
+                        <span className={cn("text-[60px] sm:text-[80px] md:text-[120px] font-bold tracking-tighter tabular-nums leading-none", bmiResult.color)}>
                           {bmiResult.value.toFixed(1)}
                         </span>
-                        <span className={cn("text-2xl font-bold uppercase tracking-widest opacity-40", bmiResult.color)}>BMI</span>
+                        <span className={cn("text-xl md:text-2xl font-bold uppercase tracking-widest opacity-40", bmiResult.color)}>BMI</span>
                       </div>
                       <div className="flex flex-col items-center gap-6">
                         <span className={cn(
