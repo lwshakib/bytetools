@@ -216,10 +216,10 @@ export default function TimerPage() {
   return (
     <>
     <div className="flex flex-1 flex-col h-full bg-background overflow-hidden lg:flex-row">
-      <div className="flex-1 flex flex-col p-6 md:p-12 overflow-y-auto">
+      <div className="flex-1 flex flex-col p-4 md:p-12 overflow-y-auto">
         <div className="max-w-2xl mx-auto w-full flex flex-col items-center">
             {/* Header Section */}
-            <div className="flex flex-col items-center text-center space-y-4 mb-20">
+            <div className="flex flex-col items-center text-center space-y-4 mb-12 sm:mb-20">
                 <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -232,11 +232,11 @@ export default function TimerPage() {
             </div>
 
             {/* Time Display */}
-            <div className="relative mb-24 w-full">
+            <div className="relative mb-16 sm:mb-24 w-full">
                 <div className="absolute -inset-20 bg-primary/5 blur-[120px] rounded-full pointer-events-none opacity-50" />
                 <motion.div 
                     layoutId="main-timer"
-                    className="relative flex flex-col items-center justify-center p-8 md:p-14 bg-card/40 border border-border/50 rounded-3xl shadow-xl backdrop-blur-md"
+                    className="relative flex flex-col items-center justify-center p-6 sm:p-8 md:p-14 bg-card/40 border border-border/50 rounded-3xl shadow-xl backdrop-blur-md"
                 >
                     <div className="flex justify-center items-center gap-2 md:gap-4 w-full">
                         {/* Hours Unit */}
