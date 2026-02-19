@@ -153,11 +153,11 @@ export default function TicTacToePage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-8 bg-background overflow-y-auto">
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+    <div className="flex flex-1 flex-col items-center justify-center bg-background overflow-y-auto">
+      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-12 items-center py-6">
         
         {/* Left Side: Stats/Config */}
-        <div className="md:col-span-4 space-y-8">
+        <div className="md:col-span-4 space-y-8 px-4">
             <div className="space-y-6">
                 <div className="space-y-1">
                     <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground/50">Tactical Node</h2>
@@ -211,10 +211,10 @@ export default function TicTacToePage() {
         </div>
 
         {/* Center: Board */}
-        <div className="md:col-span-8 flex justify-center">
+        <div className="md:col-span-8 flex justify-center p-4">
             <div className="relative">
                 <div className="absolute -inset-20 bg-primary/5 blur-3xl rounded-full opacity-30" />
-                <div className="grid grid-cols-3 gap-3 p-3 bg-muted/20 border border-border/50 rounded-[2rem] relative z-10 backdrop-blur-xl">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 p-2 sm:p-3 bg-muted/20 border border-border/50 rounded-[1.5rem] sm:rounded-[2rem] relative z-10 backdrop-blur-xl">
                     {board.map((cell, i) => {
                         const isWinning = winningLine?.includes(i);
                         return (
@@ -224,7 +224,7 @@ export default function TicTacToePage() {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => handleClick(i)}
                                 className={cn(
-                                    "w-24 h-24 md:w-32 md:h-32 rounded-2xl flex items-center justify-center text-4xl font-light transition-all duration-300 border-2",
+                                    "w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-xl sm:rounded-2xl flex items-center justify-center text-3xl sm:text-4xl font-light transition-all duration-300 border-2",
                                     cell === 'X' ? "bg-blue-500/5 border-blue-500/10 text-blue-500" :
                                     cell === 'O' ? "bg-rose-500/5 border-rose-500/10 text-rose-500" :
                                     "bg-background/40 border-transparent hover:border-border/30",
