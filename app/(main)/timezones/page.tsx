@@ -69,7 +69,7 @@ export default function TimezonesPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto p-6 md:p-8 lg:p-12">
+    <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">
       <div className="w-full space-y-12">
         {/* Main Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-5 3xl:grid-cols-6 gap-6 items-start pb-12">
