@@ -79,13 +79,13 @@ export default function AgeCalculatorPage() {
   
   return (
     <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">
-      <div className="flex-1 flex flex-col p-6 md:p-12">
+      <div className="flex-1 flex flex-col p-4 md:p-12">
         <div className="max-w-5xl mx-auto w-full flex flex-col items-center">
           {/* 
               Header Section: Branding and title for the Chronological 
               Decomposition (Age Calculator) tool.
           */}
-          <div className="flex flex-col items-center text-center space-y-4 mb-20 w-full">
+          <div className="flex flex-col items-center text-center space-y-4 mb-12 md:mb-20 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -107,10 +107,10 @@ export default function AgeCalculatorPage() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative flex flex-col p-8 md:p-14 bg-card/40 border border-border/50 rounded-xl shadow-xl backdrop-blur-md w-full overflow-hidden"
+              className="relative flex flex-col p-6 sm:p-8 md:p-14 bg-card/40 border border-border/50 rounded-xl shadow-xl backdrop-blur-md w-full overflow-hidden"
             >
-              <div className="grid grid-cols-1 gap-12">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              <div className="grid grid-cols-1 gap-8 md:gap-12">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
                   <div className="space-y-6">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 px-1">Birth Date & Time</Label>
                     <DateTimePicker date={birthDate} setDate={(d) => setBirthDate(d)} label="Select Birth Date" />
@@ -143,11 +143,11 @@ export default function AgeCalculatorPage() {
                     {/* Primary Age Result (Years) */}
                     <div className="text-center space-y-4">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30">Lived Duration</span>
-                      <div className="flex items-baseline justify-center gap-3">
-                        <span className="text-[80px] md:text-[120px] font-bold tracking-tighter tabular-nums text-foreground leading-none">
+                      <div className="flex items-baseline justify-center gap-2 md:gap-3">
+                        <span className="text-[60px] sm:text-[80px] md:text-[120px] font-bold tracking-tighter tabular-nums text-foreground leading-none">
                           {ageBreakdown.years}
                         </span>
-                        <span className="text-2xl font-bold text-primary uppercase tracking-widest">Years</span>
+                        <span className="text-xl md:text-2xl font-bold text-primary uppercase tracking-widest">Years</span>
                       </div>
                     </div>
 
