@@ -90,12 +90,12 @@ export default function StopwatchPage() {
   return (
     <div className={cn(
         "flex flex-1 flex-col h-full bg-background overflow-hidden transition-all duration-500",
-        isFullscreen ? "fixed inset-0 z-50" : "p-6 md:p-12"
+        isFullscreen ? "fixed inset-0 z-50" : "p-4 md:p-12"
     )}>
       <div className="w-full h-full max-w-5xl mx-auto flex flex-col items-center">
         {/* Header Section */}
         {!isFullscreen && (
-            <div className="flex flex-col items-center text-center space-y-4 mb-16">
+            <div className="flex flex-col items-center text-center space-y-4 mb-12 sm:mb-16">
                 <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -111,7 +111,7 @@ export default function StopwatchPage() {
         {/* Time Display */}
         <div className={cn(
             "relative flex-1 flex flex-col items-center justify-center w-full",
-            isFullscreen ? "mb-0" : "mb-20"
+            isFullscreen ? "mb-0" : "mb-12 sm:mb-20"
         )}>
             <div className="absolute -inset-40 bg-primary/5 blur-[120px] rounded-full pointer-events-none opacity-40" />
             
@@ -123,53 +123,55 @@ export default function StopwatchPage() {
                 )}
             >
                 <div className="flex items-baseline gap-1">
-                    <span className="text-[100px] md:text-[140px] font-bold tracking-tighter tabular-nums leading-none">
+                    <span className="text-[72px] sm:text-[100px] md:text-[140px] font-bold tracking-tighter tabular-nums leading-none">
                         {t.m}<span className="text-muted-foreground/10 mx-1">:</span>{t.s}
                     </span>
-                    <span className="text-[32px] md:text-[48px] font-bold text-primary tabular-nums tracking-tight opacity-60">
+                    <span className="text-[24px] sm:text-[32px] md:text-[48px] font-bold text-primary tabular-nums tracking-tight opacity-60">
                         {t.ms}
                     </span>
                 </div>
             </motion.div>
 
-            <div className="flex items-center gap-4 mt-16 pb-1">
+            <div className="flex items-center justify-center gap-2 sm:gap-4 mt-8 sm:mt-16 pb-1 flex-wrap">
                 <Button
                     onClick={toggleStopwatch}
                     size="lg"
                     className={cn(
-                        "h-14 px-10 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all active:scale-95 gap-3",
+                        "h-12 sm:h-14 px-6 sm:px-10 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-widest transition-all active:scale-95 gap-3",
                         isRunning ? "bg-secondary text-secondary-foreground hover:bg-secondary/80" : "bg-primary text-primary-foreground hover:bg-primary/90"
                     )}
                 >
-                    {isRunning ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+                    {isRunning ? <Pause className="w-3.5 h-3.5 sm:w-4 h-4 fill-current" /> : <Play className="w-3.5 h-3.5 sm:w-4 h-4 fill-current" />}
                     {isRunning ? 'Pause' : 'Start'}
                 </Button>
                 
-                <Button
-                    onClick={addLap}
-                    disabled={!isRunning}
-                    variant="outline"
-                    className="h-14 w-14 rounded-xl border-border/50 hover:bg-muted transition-all active:scale-95"
-                >
-                    <Flag className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        onClick={addLap}
+                        disabled={!isRunning}
+                        variant="outline"
+                        className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl border-border/50 hover:bg-muted transition-all active:scale-95"
+                    >
+                        <Flag className="w-4 h-4" />
+                    </Button>
 
-                <Button
-                    onClick={resetStopwatch}
-                    variant="outline"
-                    className="h-14 w-14 rounded-xl border-border/50 hover:bg-muted transition-all active:scale-95"
-                >
-                    <RotateCcw className="w-4 h-4" />
-                </Button>
+                    <Button
+                        onClick={resetStopwatch}
+                        variant="outline"
+                        className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl border-border/50 hover:bg-muted transition-all active:scale-95"
+                    >
+                        <RotateCcw className="w-4 h-4" />
+                    </Button>
 
-                <Button
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                    variant="ghost"
-                    size="icon"
-                    className="h-14 w-14 rounded-xl border border-border/50 bg-muted/10 text-muted-foreground hover:text-foreground transition-all active:scale-95"
-                >
-                    {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                </Button>
+                    <Button
+                        onClick={() => setIsFullscreen(!isFullscreen)}
+                        variant="ghost"
+                        size="icon"
+                        className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl border border-border/50 bg-muted/10 text-muted-foreground hover:text-foreground transition-all active:scale-95"
+                    >
+                        {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </Button>
+                </div>
             </div>
         </div>
 
