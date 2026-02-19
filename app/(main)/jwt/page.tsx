@@ -212,7 +212,7 @@ export default function JWTToolPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col p-6 md:p-8 overflow-y-auto">
+    <div className="flex flex-1 flex-col p-4 sm:p-6 md:p-8 overflow-y-auto">
       <div className="w-full max-w-4xl mx-auto space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             <div className="md:col-span-8 space-y-8">
