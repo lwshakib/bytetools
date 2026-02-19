@@ -195,24 +195,24 @@ export default function DailyPlannerPage() {
     <div className="flex flex-1 flex-col h-full bg-background overflow-hidden">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
         {/* Top Bar */}
-        <div className="flex items-center justify-between p-4 px-6 border-b border-border/50 bg-background/80 backdrop-blur-md shrink-0 z-20">
-          <div className="flex items-center gap-6">
+        <div className="flex items-center justify-between p-4 border-b border-border/50 bg-background/80 backdrop-blur-md shrink-0 z-20">
+          <div className="flex items-center gap-2 sm:gap-6">
               <TabsList className="bg-muted/30 p-1 h-9 gap-1 rounded-lg">
-                <TabsTrigger value="daily" className="px-4 rounded-md text-xs font-medium transition-all">
+                <TabsTrigger value="daily" className="px-2 sm:px-4 rounded-md text-[10px] sm:text-xs font-medium transition-all">
                   Planner
                 </TabsTrigger>
-                <TabsTrigger value="routine" className="px-4 rounded-md text-xs font-medium transition-all">
+                <TabsTrigger value="routine" className="px-2 sm:px-4 rounded-md text-[10px] sm:text-xs font-medium transition-all">
                   Routines
                 </TabsTrigger>
-                <TabsTrigger value="dump" className="px-4 rounded-md text-xs font-medium transition-all">
+                <TabsTrigger value="dump" className="px-2 sm:px-4 rounded-md text-[10px] sm:text-xs font-medium transition-all">
                   Dump
                 </TabsTrigger>
               </TabsList>
           </div>
 
           {activeTab === 'daily' && (
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="h-8 px-3 text-xs font-medium rounded-md hover:bg-muted" onClick={() => setBaseDate(startOfToday())}>Today</Button>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Button variant="ghost" size="sm" className="hidden sm:inline-flex h-8 px-3 text-xs font-medium rounded-md hover:bg-muted" onClick={() => setBaseDate(startOfToday())}>Today</Button>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="icon" className="h-8 w-8 rounded-md border-border/50 hover:bg-muted"><CalendarIcon className="w-4 h-4" /></Button>
@@ -232,7 +232,7 @@ export default function DailyPlannerPage() {
         {/* Content Area */}
         <div className="flex-1 overflow-hidden relative">
           <TabsContent value="daily" className="m-0 h-full">
-            <div className="flex h-full p-6 gap-6 overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="flex h-full p-2 sm:p-6 gap-4 sm:gap-6 overflow-x-auto overflow-y-hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 whitespace-nowrap md:whitespace-normal">
               {isLoading ? (
                 Array.from({ length: columnCount }).map((_, i) => (
                   <div key={i} className="flex flex-col h-full rounded-xl bg-card/40 border border-border/50 overflow-hidden min-w-[300px] md:min-w-0 transition-all shadow-sm">
