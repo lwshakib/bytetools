@@ -22,7 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <MainHeader />
         
         {/* Main content area where individual tool pages are rendered */}
-        <div className="flex flex-1 flex-col p-4">
+        <div className="flex flex-1 flex-col p-2 md:p-6 lg:p-8">
           {children}
         </div>
       </SidebarInset>
