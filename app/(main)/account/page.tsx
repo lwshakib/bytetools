@@ -125,15 +125,15 @@ export default function AccountPage() {
 
   return (
     <div className="flex-1 overflow-y-auto scroll-smooth">
-      <div className="max-w-5xl mx-auto py-16 px-6">
-        <header className="mb-16">
+      <div className="max-w-5xl mx-auto py-8 sm:py-16 px-4 sm:px-6">
+        <header className="mb-10 sm:mb-16">
           <h1 className="text-2xl font-semibold">Account Settings</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Manage your profile, security, and active sessions.
           </p>
         </header>
 
-        <div className="flex flex-col lg:flex-row gap-16">
+        <div className="flex flex-col lg:flex-row gap-10 sm:gap-16">
           <aside className="w-full lg:w-48 lg:sticky lg:top-24 space-y-1">
             <NavBtn active={activeNav === "profile"} onClick={() => scrollToSection("profile")} icon={User} label="Profile" />
             <NavBtn active={activeNav === "security"} onClick={() => scrollToSection("security")} icon={Lock} label="Security" />
