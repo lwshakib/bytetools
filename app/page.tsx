@@ -27,7 +27,8 @@ import {
   Scale,
   Layout,
   Smartphone,
-  EyeOff
+  EyeOff,
+  Menu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,14 @@ import {
 } from "@/components/ui/accordion";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const tools = [
   { title: "Timezones", url: "/timezones", icon: Globe, color: "text-blue-500", bg: "bg-blue-500/10", desc: "Global temporal mapping and conversion." },
@@ -134,9 +143,61 @@ export default function Home() {
 
           <div className="flex md:hidden items-center gap-3">
             <ThemeToggle />
-            <Button variant="ghost" size="icon">
-              <Layout className="w-5 h-5" />
-            </Button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="w-5 h-5" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] border-l border-border/40 p-0">
+                <SheetHeader className="text-left py-6 px-8 border-b border-border/40">
+                  <SheetTitle>
+                    <Link href="/" className="hover:opacity-80 transition-opacity inline-block">
+                      <Logo iconSize={22} textSize="1rem" />
+                    </Link>
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-1 mt-8 px-8">
+                  {[
+                    { href: "#tools", label: "Tools" },
+                    { href: "#features", label: "Features" },
+                    { href: "#faq", label: "FAQ" },
+                  ].map((item, idx) => (
+                    <div key={item.href}>
+                      <SheetClose asChild>
+                        <Link 
+                          href={item.href} 
+                          className="flex items-center w-full py-3 text-[15px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {item.label}
+                        </Link>
+                      </SheetClose>
+                    </div>
+                  ))}
+                  
+                  <div className="my-4 h-px bg-border/40 w-full" />
+                  
+                  <SheetClose asChild>
+                    <a 
+                      href="https://github.com/lwshakib/bytetools" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center gap-2 w-full py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-all"
+                    >
+                      <Github className="w-4 h-4" />
+                      <span>GitHub</span>
+                    </a>
+                  </SheetClose>
+                </div>
+
+                <div className="mt-auto pb-10 px-8">
+                  <p className="text-[10px] text-muted-foreground/50 tracking-tight">
+                    © 2026 BYTETOOLS
+                  </p>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </nav>
