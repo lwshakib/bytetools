@@ -200,7 +200,7 @@ export default function QRCodePage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col p-6 md:p-8 overflow-y-auto">
+    <div className="flex flex-1 flex-col overflow-y-auto">
       <div className="w-full max-w-4xl mx-auto space-y-8">
         <Tabs defaultValue="generate" className="w-full">
             <TabsList className="grid w-full grid-cols-2 h-10 bg-muted/40 p-1 rounded-lg border border-border/50">
