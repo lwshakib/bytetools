@@ -67,26 +67,26 @@ export default function RockPaperScissorsPage() {
   const resetScores = () => { setScores({ user: 0, computer: 0 }); toast.success("Scores have been reset"); };
 
   return (
-    <div className="flex flex-1 flex-col p-8 md:p-12 lg:p-20 items-center overflow-y-auto">
+    <div className="flex flex-1 flex-col items-center overflow-y-auto bg-background py-6 px-4">
       <div className="w-full max-w-4xl space-y-12">
         
         {/* Arena Header */}
-        <div className="flex flex-col items-center gap-12">
-             <div className="flex gap-4">
+        <div className="flex flex-col items-center gap-8 md:gap-12">
+             <div className="flex gap-2 sm:gap-4">
                 {[
                     { label: 'Agent 01', val: scores.user, color: 'text-primary' },
                     { label: 'Neural Core', val: scores.computer, color: 'text-muted-foreground' }
                 ].map((s, i) => (
-                    <div key={i} className="bg-card/40 border border-border/10 px-8 py-4 rounded-2xl flex flex-col items-center gap-1">
+                    <div key={i} className="bg-card/40 border border-border/10 px-4 sm:px-8 py-3 sm:py-4 rounded-2xl flex flex-col items-center gap-1">
                         <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/40">{s.label}</span>
-                        <span className={cn("text-2xl font-mono font-bold", s.color)}>{s.val}</span>
+                        <span className={cn("text-xl sm:text-2xl font-mono font-bold", s.color)}>{s.val}</span>
                     </div>
                 ))}
             </div>
 
             <div className="relative group">
                 <div className="absolute -inset-20 bg-primary/5 blur-3xl rounded-full opacity-30" />
-                <div className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-full border border-border/10 bg-muted/20 flex flex-col items-center justify-center p-12 relative z-10 backdrop-blur-xl">
+                <div className="w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] md:w-[400px] md:h-[400px] rounded-full border border-border/10 bg-muted/20 flex flex-col items-center justify-center p-8 sm:p-12 relative z-10 backdrop-blur-xl">
                     <AnimatePresence mode="wait">
                         {!userChoice ? (
                             <motion.div 
@@ -103,11 +103,11 @@ export default function RockPaperScissorsPage() {
                                 key="duel"
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="flex flex-col items-center gap-12"
+                                className="flex flex-col items-center gap-8 sm:gap-12"
                             >
-                                <div className="flex items-center gap-12">
-                                    <div className="flex flex-col items-center gap-4">
-                                        <div className="w-20 h-20 rounded-2xl bg-background border border-border/50 flex items-center justify-center text-4xl shadow-sm">
+                                <div className="flex items-center gap-6 sm:gap-12">
+                                    <div className="flex flex-col items-center gap-3 sm:gap-4">
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-background border border-border/50 flex items-center justify-center text-3xl sm:text-4xl shadow-sm">
                                             {choices.find(c => c.id === userChoice)?.icon}
                                         </div>
                                         <span className="text-[8px] font-bold uppercase tracking-widest opacity-30">Agent</span>
@@ -115,8 +115,8 @@ export default function RockPaperScissorsPage() {
                                     
                                     <span className="text-sm font-mono font-bold text-primary opacity-20">VS</span>
 
-                                    <div className="flex flex-col items-center gap-4">
-                                        <div className="w-20 h-20 rounded-2xl bg-background border border-border/50 flex items-center justify-center text-4xl shadow-sm">
+                                    <div className="flex flex-col items-center gap-3 sm:gap-4">
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-background border border-border/50 flex items-center justify-center text-3xl sm:text-4xl shadow-sm">
                                             {isPlaying ? (
                                                 <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>⚙️</motion.div>
                                             ) : (
@@ -132,7 +132,7 @@ export default function RockPaperScissorsPage() {
                                         initial={{ y: 10, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}
                                         className={cn(
-                                            "text-[10px] font-bold uppercase tracking-[0.4em] px-8 py-2 rounded-full border",
+                                            "text-[10px] font-bold uppercase tracking-[0.4em] px-6 sm:px-8 py-2 rounded-full border",
                                             result === 'win' ? "bg-primary/5 border-primary/20 text-primary" :
                                             result === 'lose' ? "bg-red-500/5 border-red-500/20 text-red-500" :
                                             "bg-muted/40 border-border/50 text-muted-foreground"
@@ -147,7 +147,7 @@ export default function RockPaperScissorsPage() {
                 </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-2 sm:gap-4 flex-wrap justify-center">
                 {choices.map((choice) => (
                     <motion.button
                         key={choice.id}
@@ -156,12 +156,12 @@ export default function RockPaperScissorsPage() {
                         disabled={isPlaying}
                         onClick={() => playGame(choice.id)}
                         className={cn(
-                            "group flex flex-col items-center gap-3 p-6 rounded-2xl border transition-all w-24 md:w-32",
+                            "group flex flex-col items-center gap-2 sm:gap-3 p-4 sm:p-6 rounded-2xl border transition-all w-20 sm:w-24 md:w-32",
                             userChoice === choice.id ? "bg-primary/5 border-primary/20" : "bg-card/40 border-border/50 hover:border-primary/20"
                         )}
                     >
-                        <span className="text-3xl grayscale group-hover:grayscale-0 transition-all">{choice.icon}</span>
-                        <span className={cn("text-[9px] font-bold uppercase tracking-widest transition-all", userChoice === choice.id ? "text-primary" : "text-muted-foreground/40 group-hover:text-muted-foreground")}>
+                        <span className="text-2xl sm:text-3xl grayscale group-hover:grayscale-0 transition-all">{choice.icon}</span>
+                        <span className={cn("text-[8px] sm:text-[9px] font-bold uppercase tracking-widest transition-all", userChoice === choice.id ? "text-primary" : "text-muted-foreground/40 group-hover:text-muted-foreground")}>
                             {choice.label}
                         </span>
                     </motion.button>
