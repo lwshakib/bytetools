@@ -117,9 +117,9 @@ export default function PomodoroPage() {
     <div className="flex flex-1 flex-col h-full bg-background overflow-hidden">
       <div className="flex flex-1 flex-col lg:flex-row h-full">
         {/* Timer Section */}
-        <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-12 overflow-y-auto">
-          <div className="w-full max-w-xl space-y-12">
-            <div className="flex flex-col items-center text-center space-y-8">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 md:p-12 overflow-y-auto">
+          <div className="w-full max-w-xl space-y-8 sm:space-y-12">
+            <div className="flex flex-col items-center text-center space-y-6 sm:space-y-8">
                 <div className="flex items-center gap-1 p-1 bg-muted/40 rounded-xl border border-border/50">
                     {[
                       { id: 'focus' as TimerMode, label: 'Focus', icon: Brain },
@@ -132,7 +132,7 @@ export default function PomodoroPage() {
                         size="sm"
                         onClick={() => changeMode(m.id)}
                         className={cn(
-                          "h-10 px-6 rounded-lg text-[10px] font-bold uppercase transition-all",
+                          "h-9 sm:h-10 px-3 sm:px-6 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase transition-all",
                           mode === m.id ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:bg-muted"
                         )}
                       >
@@ -146,7 +146,7 @@ export default function PomodoroPage() {
                       key={mode}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-[120px] font-mono font-bold tracking-tighter tabular-nums leading-none text-foreground"
+                      className="text-[80px] sm:text-[100px] md:text-[120px] font-mono font-bold tracking-tighter tabular-nums leading-none text-foreground"
                   >
                       {formatTime(timeLeft)}
                   </motion.div>
@@ -155,12 +155,12 @@ export default function PomodoroPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 sm:gap-4">
                     <Button
                       onClick={toggleTimer}
                       size="lg"
                       className={cn(
-                        "h-16 px-12 rounded-2xl text-xs font-bold uppercase tracking-widest shadow-none transition-all active:scale-95 gap-3",
+                        "h-14 sm:h-16 px-8 sm:px-12 rounded-2xl text-[10px] sm:text-xs font-bold uppercase tracking-widest shadow-none transition-all active:scale-95 gap-3",
                         isRunning 
                             ? "bg-zinc-900 text-white hover:bg-zinc-950 border border-white/5" 
                             : "bg-primary text-primary-foreground hover:opacity-90"
@@ -173,7 +173,7 @@ export default function PomodoroPage() {
                         onClick={resetTimer}
                         variant="outline"
                         size="icon"
-                        className="h-16 w-16 rounded-2xl border-border/50 hover:bg-muted"
+                        className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl border-border/50 hover:bg-muted"
                     >
                         <RotateCcw className="w-5 h-5" />
                     </Button>
