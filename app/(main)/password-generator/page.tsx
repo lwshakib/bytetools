@@ -179,13 +179,13 @@ export default function PasswordGeneratorPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col p-6 md:p-8 overflow-y-auto">
+    <div className="flex flex-1 flex-col p-4 sm:p-6 md:p-8 overflow-y-auto">
       <div className="w-full max-w-5xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left Column: Generator */}
             <div className="lg:col-span-7 space-y-6">
                 <Card className="bg-card/40 border-border/50 shadow-sm rounded-2xl overflow-hidden relative">
-                    <CardHeader className="p-8 pb-4">
+                    <CardHeader className="p-4 sm:p-8 pb-4">
                         <div className="flex items-center justify-between">
                             <div className="space-y-1">
                                 <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground/50">Generator</CardTitle>
@@ -200,12 +200,12 @@ export default function PasswordGeneratorPage() {
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent className="p-8 pt-0 space-y-8">
+                    <CardContent className="p-4 sm:p-8 pt-0 space-y-6 sm:space-y-8">
                         <div className="relative group">
                             <Input
                                 readOnly
                                 value={password}
-                                className="h-16 text-2xl font-mono text-center bg-muted/20 border-border/50 text-foreground rounded-xl px-14 focus:ring-0"
+                                className="h-12 sm:h-16 text-lg sm:text-2xl font-mono text-center bg-muted/20 border-border/50 text-foreground rounded-xl px-12 sm:px-14 focus:ring-0"
                                 placeholder="..."
                             />
                             <div className="absolute left-2 top-1/2 -translate-y-1/2">
