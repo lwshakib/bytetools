@@ -81,10 +81,10 @@ export default function WeightConverterPage() {
 
   return (
     <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">
-      <div className="flex-1 flex flex-col p-6 md:p-12">
+      <div className="flex-1 flex flex-col p-4 md:p-12">
         <div className="max-w-5xl mx-auto w-full flex flex-col items-center">
           {/* Header Section */}
-          <div className="flex flex-col items-center text-center space-y-4 mb-20 w-full">
+          <div className="flex flex-col items-center text-center space-y-4 mb-12 md:mb-20 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -102,7 +102,7 @@ export default function WeightConverterPage() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative flex flex-col p-8 md:p-14 bg-card/40 border border-border/50 rounded-xl shadow-xl backdrop-blur-md w-full overflow-hidden"
+              className="relative flex flex-col p-6 sm:p-8 md:p-14 bg-card/40 border border-border/50 rounded-xl shadow-xl backdrop-blur-md w-full overflow-hidden"
             >
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-8 lg:gap-12">
                 {/* Source Section */}
@@ -117,7 +117,7 @@ export default function WeightConverterPage() {
                         type="number"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        className="h-20 text-4xl font-bold bg-background/40 border-border/50 rounded-lg pr-12 tabular-nums"
+                        className="h-16 sm:h-20 text-3xl sm:text-4xl font-bold bg-background/40 border-border/50 rounded-lg pr-12 tabular-nums"
                         placeholder="0.00"
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 font-bold uppercase tracking-widest text-xs">
@@ -159,8 +159,8 @@ export default function WeightConverterPage() {
                   </div>
                   <div className="space-y-4">
                     <div className="relative">
-                      <div className="h-20 flex items-center px-6 bg-primary/5 border border-primary/20 rounded-lg overflow-hidden group">
-                        <span className="text-4xl font-bold tracking-tighter tabular-nums text-primary truncate">
+                      <div className="h-16 sm:h-20 flex items-center px-4 sm:px-6 bg-primary/5 border border-primary/20 rounded-lg overflow-hidden group">
+                        <span className="text-3xl sm:text-4xl font-bold tracking-tighter tabular-nums text-primary truncate">
                           {convertedAmount === "0.00" ? "0" : convertedAmount}
                         </span>
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-primary/40 font-bold uppercase tracking-widest text-xs">
