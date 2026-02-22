@@ -1,4 +1,4 @@
-# Bytetools
+# <img src="public/logo.svg" width="36" height="36" alt="ByteTools Logo" style="vertical-align: middle; margin-right: 8px;" /> Bytetools
 
 Welcome to **Bytetools**! A modern, premium utility suite built with [Next.js](https://nextjs.org), designed to provide essential, privacy-focused tools for developers and power users.
 
