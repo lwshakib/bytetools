@@ -37,8 +37,8 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: "http://localhost:3000"
-          NEXT_PUBLIC_BASE_URL: "http://localhost:3000"
+          BETTER_AUTH_URL: 'http://localhost:3000'
+          NEXT_PUBLIC_BASE_URL: 'http://localhost:3000'
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
 
@@ -66,8 +66,8 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: "http://localhost:3000"
-          NEXT_PUBLIC_BASE_URL: "http://localhost:3000"
+          BETTER_AUTH_URL: 'http://localhost:3000'
+          NEXT_PUBLIC_BASE_URL: 'http://localhost:3000'
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
 
