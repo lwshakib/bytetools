@@ -1,18 +1,20 @@
 /**
  * API route for the Password Vault.
  * Provides secure endpoints to save, retrieve, and delete passwords.
- * All passwords are encrypted before being stored in the database.
+ * All passwords are encrypted using AES-GCM before being stored in the PostgreSQL database.
  */
-import { auth } from '@/lib/auth';
-import prisma from '@/lib/prisma';
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { encrypt, decrypt } from '@/lib/encryption';
+import { auth } from '@/lib/auth'; // Session verifier
+import prisma from '@/lib/prisma'; // Database handler
+import { NextResponse } from 'next/server'; // Next.js JSON response formatter
+import { headers } from 'next/headers'; // Function mapping HTTP headers from exact incoming request payloads
+import { encrypt, decrypt } from '@/lib/encryption'; // Secure symmetrical string transformation logic
 
 /**
+ * GET Handler
  * Retrieves all saved passwords for the authenticated user and decrypts them.
  */
 export async function GET() {
+  // Validate backend session logic leveraging client-side active session headers
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -21,23 +23,27 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Fetch all passwords strictly associated with this user, ordered chronologically.
   const passwords = await prisma.savedPassword.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: 'desc' },
   });
 
-  // Decrypt the stored encrypted strings back into plain text for the user.
+  // Iterate over each record to perform decrypt action in-memory dynamically.
+  // We NEVER decrypt these rows in batches directly on the DB itself since the database only tracks encrypted binaries.
   const decryptedPasswords = passwords.map((p) => {
     try {
+      // Yield back the clean response with the standard value exposed correctly for the UI to consume safely
       return {
         ...p,
         value: decrypt(p.hashedValue),
       };
     } catch {
-      // If decryption fails, provide a redacted placeholder to avoid crashing the UI.
+      // Defensive fallback. If decryption completely fails (e.g. Master secret change, corruption),
+      // we gracefully return a redacted string rather than killing the whole page load.
       return {
         ...p,
-        value: '[REDACTED HASH]',
+        value: '[REDACTED HASH - CORRUPTED]',
       };
     }
   });
@@ -46,9 +52,11 @@ export async function GET() {
 }
 
 /**
- * Encrypts and saves a new password to the user's vault.
+ * POST Handler
+ * Encrypts and saves a new password record to the user's vault database.
  */
 export async function POST(req: Request) {
+  // Validate incoming request context synchronously
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -57,36 +65,42 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Parse payload contents
   const { name, value } = await req.json();
 
   if (!value) {
+    // Break early if client bypassed standard form logic submitting blank items
     return NextResponse.json(
       { error: 'Password value is required' },
       { status: 400 }
     );
   }
 
-  // Encrypt the password value before it ever hits the database.
+  // IMPORTANT: Symmetrically Encrypt the raw string password value
+  // We explicitly run this node-side operation to completely blind the resulting PostgreSQL storage state.
   const encryptedValue = encrypt(value);
 
+  // Safely commit new entity, assigning it an owner and parsing default fallbacks
   const savedPassword = await prisma.savedPassword.create({
     data: {
       userId: session.user.id,
-      name: name || 'Saved Password',
-      hashedValue: encryptedValue,
+      name: name || 'Saved Password', // Default label
+      hashedValue: encryptedValue, // Only the base64 encrypted hash touches the database.
     },
   });
 
   return NextResponse.json({
     ...savedPassword,
-    value, // Return the original value for immediate UI update.
+    value, // We return the original plain text value back to the payload instantly for the local UI hydration loop to display smoothly.
   });
 }
 
 /**
- * Removes a password entry from the vault.
+ * DELETE Handler
+ * Safely removes a targeted password entry entirely from the vault.
  */
 export async function DELETE(req: Request) {
+  // Always lock behind session evaluation first
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -95,8 +109,12 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Consume target ID mapping straight from body context
   const { id } = await req.json();
 
+  // Run native Prisma query ensuring two layers of validation occurs matching:
+  // 1. Target ID matching targeted object.
+  // 2. Ensuring the Owner UUID perfectly aligns with the active request UUID (Preventing arbitrary deletions)
   await prisma.savedPassword.delete({
     where: {
       id,

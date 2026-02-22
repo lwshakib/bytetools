@@ -1,14 +1,15 @@
 /**
  * API route for synchronizing user routines in the Daily Planner.
- * Handles fetching all routines and performing a full sync (replace all) operation.
+ * Handles fetching all routines and performing a destructive full sync (replace all) operation.
  */
-import { auth } from '@/lib/auth';
-import prisma from '@/lib/prisma';
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
+import { auth } from '@/lib/auth'; // Core auth verification 
+import prisma from '@/lib/prisma'; // Database object instance
+import { NextResponse } from 'next/server'; // Required JSON response syntax
+import { headers } from 'next/headers'; // Used to map the auth headers from the raw request
 
 /**
- * Retrieves all saved routines for the authenticated user.
+ * GET Handler
+ * Retrieves all saved routines associated exclusively with the authenticated user.
  */
 export async function GET() {
   const session = await auth.api.getSession({
@@ -27,10 +28,12 @@ export async function GET() {
 }
 
 /**
- * Synchronizes routines by replacing the entire set of user routines.
- * Uses a transaction to ensure atomic deletion and recreation.
+ * POST Handler
+ * Synchronizes routines by systematically replacing the entire set of user routines.
+ * Uses a $transaction block to ensure atomic deletion and recreation, so if one fails, it rolls back natively.
  */
 export async function POST(req: Request) {
+  // Validate request securely against session cache
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -41,10 +44,12 @@ export async function POST(req: Request) {
 
   const items = await req.json();
 
-  // Perform a destructive sync: wipe existing routines and insert the current state from the client.
+  // Database Execution Block
+  // Perform a destructive sync: wipe existing routines and insert the current state from the client perfectly.
+  // We use transactions here to prevent data loss or corrupted intermediate states.
   await prisma.$transaction([
-    prisma.routine.deleteMany({ where: { userId: session.user.id } }),
-    prisma.routine.createMany({
+    prisma.routine.deleteMany({ where: { userId: session.user.id } }), // Purge Phase
+    prisma.routine.createMany({ // Seed Phase
       data: items.map(
         (it: {
           text: string;
@@ -52,7 +57,7 @@ export async function POST(req: Request) {
           selectedDays?: number[];
           selectedDate?: number | null;
         }) => ({
-          userId: session.user.id,
+          userId: session.user.id, // Explicitly enforce correct data ownership mapping
           text: it.text,
           frequency: it.frequency,
           selectedDays: it.selectedDays || [],

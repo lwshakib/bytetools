@@ -1,14 +1,15 @@
 /**
  * API route for synchronizing custom timer presets.
- * Handles fetching all presets and performing a full sync (replace all) operation.
+ * Handles fetching all presets and performing a destructive full sync (replace all) operation.
  */
-import { auth } from '@/lib/auth';
-import prisma from '@/lib/prisma';
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
+import { auth } from '@/lib/auth'; // Core better-auth backend validation client
+import prisma from '@/lib/prisma'; // Global Prisma ORM instance
+import { NextResponse } from 'next/server'; // Next.js uniform response builder
+import { headers } from 'next/headers'; // Next.js API for dynamically parsing request headers
 
 /**
- * Retrieves all saved timer presets for the authenticated user.
+ * GET Handler
+ * Retrieves all saved timer presets explicitly tied to the authenticated user.
  */
 export async function GET() {
   const session = await auth.api.getSession({
@@ -34,10 +35,12 @@ export async function GET() {
 }
 
 /**
- * Synchronizes timer presets by replacing the entire set of user presets.
- * Uses a transaction to ensure atomic deletion and recreation.
+ * POST Handler
+ * Synchronizes timer presets by replacing the entire set of user presets systematically.
+ * Uses a $transaction block to ensure atomic deletion and recreation, avoiding dropped states.
  */
 export async function POST(req: Request) {
+  // Extract and parse session state synchronously from the incoming request's cookie headers
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -48,12 +51,13 @@ export async function POST(req: Request) {
 
   const items = await req.json();
 
-  // Perform a destructive sync: wipe existing presets and insert the current state from the client.
+  // Database Execution Block
+  // Perform a destructive sync: wipe existing presets mapped to the user and insert the new array.
   await prisma.$transaction([
-    prisma.timerPreset.deleteMany({ where: { userId: session.user.id } }),
-    prisma.timerPreset.createMany({
+    prisma.timerPreset.deleteMany({ where: { userId: session.user.id } }), // Purge Phase
+    prisma.timerPreset.createMany({ // Seed Phase
       data: items.map((it: { name: string; duration: number }) => ({
-        userId: session.user.id,
+        userId: session.user.id, // Re-attach newly synced rows back to User primary ID securely
         name: it.name,
         duration: it.duration,
       })),

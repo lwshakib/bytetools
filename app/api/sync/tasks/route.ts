@@ -1,13 +1,14 @@
 /**
  * API route for synchronizing user tasks (Daily Planner & Pomodoro).
- * Handles fetching all tasks and performing a full sync (replace all) operation.
+ * Handles fetching all tasks and performing a destructive full sync (replace all) operation.
  */
-import { auth } from '@/lib/auth';
-import prisma from '@/lib/prisma';
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
+import { auth } from '@/lib/auth'; // Core session utility
+import prisma from '@/lib/prisma'; // Global DB connection
+import { NextResponse } from 'next/server'; // JSON response builder
+import { headers } from 'next/headers'; // Dynamic header extraction
 
 /**
+ * GET Handler
  * Retrieves all saved tasks for the authenticated user.
  */
 export async function GET() {
@@ -35,26 +36,32 @@ interface TaskInput {
 }
 
 /**
- * Synchronizes tasks by replacing the entire set of user tasks.
- * Uses a transaction to ensure atomic deletion and recreation.
+ * POST Handler
+ * Synchronizes tasks by systematically replacing the entire set of user tasks.
+ * Uses a $transaction block to ensure atomic deletion and recreation, so if one fails, it rolls back natively.
  */
 export async function POST(req: Request) {
+  // Validate the request securely against session cache
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
+  // Verify Identity
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Force cast the JSON body into the structured array interface
   const items = (await req.json()) as TaskInput[];
 
-  // Perform a destructive sync: wipe existing tasks and insert the current state from the client.
+  // Database Execution Block
+  // Perform a destructive sync: wipe existing tasks mapping and insert the current state matching the client perfectly.
+  // We use transactions here to prevent data loss in the event Prisma fails halfway through.
   await prisma.$transaction([
-    prisma.task.deleteMany({ where: { userId: session.user.id } }),
-    prisma.task.createMany({
+    prisma.task.deleteMany({ where: { userId: session.user.id } }), // Purge Phase
+    prisma.task.createMany({ // Seed Phase
       data: items.map((it) => ({
-        userId: session.user.id,
+        userId: session.user.id, // Re-attach newly synced rows back to User
         text: it.text,
         completed: it.completed,
         date: it.date,

@@ -1,4 +1,4 @@
-'use client';
+'use client'; // Client-side hydration mark required for React hooks.
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
@@ -34,47 +34,79 @@ import { authClient, useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 
+/**
+ * AccountPage Component
+ * Provides a user-facing dashboard for managing their profile details, 
+ * reviewing active sessions, and executing dangerous actions (like account deletion).
+ */
 export default function AccountPage() {
-  const router = useRouter();
+  const router = useRouter(); // Next.js App router hook for programmatic navigation
+  
+  // Custom hook wrapping Better-Auth client to asynchronously fetch the currently logged in user context
   const { data: sessionData, isPending } = useSession();
+  
+  // Local state tracking which navigation tab on the sidebar is active
   const [activeNav, setActiveNav] = useState('profile');
+  
+  // Local loading state while performing the destructive deletion API call
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Route protection
+  // ---------------------------------------------------------------------------
+  // ROUTE PROTECTION
+  // If the hook finishes loading and no session object was returned, kick the user out
+  // ---------------------------------------------------------------------------
   useEffect(() => {
     if (!isPending && !sessionData) {
       router.push('/');
     }
   }, [sessionData, isPending, router]);
 
+  // Specific refs bound to the actual DOM elements mapping to the scroll sections
   const profileRef = useRef<HTMLDivElement>(null);
   const securityRef = useRef<HTMLDivElement>(null);
   const sessionsRef = useRef<HTMLDivElement>(null);
   const dangerRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * Calculates position and dynamically smooth scrolls down to a specified section 
+   * when a sidebar button is clicked.
+   */
   const scrollToSection = (section: string) => {
-    setActiveNav(section);
+    setActiveNav(section); // Update active state visibly on sidebar
+    
+    // Map the string argument cleanly to actual React ref instances
     const refs: Record<string, React.RefObject<HTMLDivElement | null>> = {
       profile: profileRef,
       security: securityRef,
       sessions: sessionsRef,
       danger: dangerRef,
     };
+    
+    // Smoothly scroll using native DOM APIs mapping to the matched element
     refs[section]?.current?.scrollIntoView({
       behavior: 'smooth',
-      block: 'start',
+      block: 'start', // Align the targeted element to the top of the viewport frame
     });
   };
 
+  /**
+   * Action handler for changing display name logic.
+   * Modifies the Better-Auth stored metadata.
+   */
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Extract manual DOM value rather than using heavy controlled react states here for simplicity
     const nameInput = document.getElementById(
       'display-name'
     ) as HTMLInputElement;
     if (!nameInput) return;
 
     try {
+      // Trigger the Better-Auth API updating just the display name attribute
       const { error } = await authClient.updateUser({ name: nameInput.value });
+      
+      // Give contextual UI feedback over success/failure using sonner toast
       if (error) {
         toast.error(error.message || 'Failed to update profile');
       } else {
@@ -85,8 +117,12 @@ export default function AccountPage() {
     }
   };
 
+  /**
+   * Action handler to completely nuke the current user from existence.
+   * Hits the custom internal `/api/account/delete` endpoint which cascades destruction through DB schema.
+   */
   const handleDeleteAccount = async () => {
-    setIsDeleting(true);
+    setIsDeleting(true); // Engages loading spinner in the destructive button
     try {
       const response = await fetch('/api/account/delete', {
         method: 'DELETE',
@@ -94,13 +130,15 @@ export default function AccountPage() {
 
       const result = await response.json();
 
+      // Ensure HTTP request explicitly responds OK and payload succeeded
       if (!response.ok || result.error) {
         toast.error(result.error || 'Failed to delete account');
       } else {
         toast.success('Account deleted successfully');
-        // Sign out on the client side to clear local state
+        
+        // Sign out locally to wipe cookies cleanly before redirecting to the splash page
         await authClient.signOut();
-        window.location.href = '/';
+        window.location.href = '/'; 
       }
     } catch {
       toast.error('An error occurred during account deletion.');
@@ -109,9 +147,11 @@ export default function AccountPage() {
     }
   };
 
+  // Safely fallback user/session details
   const user = sessionData?.user;
   const currentSession = sessionData?.session;
 
+  // Render a blocking loading state to avoid hydration issues or flashing empty content to a logged-out user
   if (isPending || !sessionData) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -120,14 +160,18 @@ export default function AccountPage() {
     );
   }
 
+  /**
+   * Cleanly signs a user out dynamically, wiping state globally.
+   */
   const handleSignOut = async () => {
     await authClient.signOut();
-    window.location.href = '/';
+    window.location.href = '/'; // Hard redirect clears out cached page artifacts globally
   };
 
   return (
     <div className="flex-1 overflow-y-auto scroll-smooth">
       <div className="max-w-5xl mx-auto py-8 sm:py-16 px-4 sm:px-6">
+        {/* Top contextual header block explaining the purpose of this page. */}
         <header className="mb-10 sm:mb-16">
           <h1 className="text-2xl font-semibold">Account Settings</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -136,6 +180,7 @@ export default function AccountPage() {
         </header>
 
         <div className="flex flex-col lg:flex-row gap-10 sm:gap-16">
+          {/* Sidebar Nav: Sticky positioning anchors it visibly alongside the main scrollable settings */}
           <aside className="w-full lg:w-48 lg:sticky lg:top-24 space-y-1">
             <NavBtn
               active={activeNav === 'profile'}
@@ -155,6 +200,8 @@ export default function AccountPage() {
               icon={Shield}
               label="Sessions"
             />
+            
+            {/* Split out boundary for destructive actions containing an Alert Dialogue wrapping Sign Out */}
             <div className="pt-4 mt-4 border-t border-border space-y-1">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -183,6 +230,7 @@ export default function AccountPage() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              
               <NavBtn
                 active={activeNav === 'danger'}
                 onClick={() => scrollToSection('danger')}
@@ -193,7 +241,9 @@ export default function AccountPage() {
             </div>
           </aside>
 
+          {/* Main List content: Each section is tracked using dynamic Refs for smooth scrolling */}
           <main className="flex-1 space-y-20">
+            {/* =============== PROFILE SECTION =============== */}
             <section
               ref={profileRef}
               id="profile"
@@ -202,6 +252,7 @@ export default function AccountPage() {
               <div className="flex items-center gap-6">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden border relative">
                   {user?.image ? (
+                    // Load the highly optimized Next.js image wrapper if OAuth profile photo exists
                     <Image
                       src={user.image}
                       alt=""
@@ -209,6 +260,7 @@ export default function AccountPage() {
                       className="object-cover"
                     />
                   ) : (
+                    // Fall back to simple standard icon
                     <User className="w-6 h-6 text-muted-foreground" />
                   )}
                 </div>
@@ -218,6 +270,7 @@ export default function AccountPage() {
                   </h2>
                   <p className="text-xs text-muted-foreground">
                     Joined in{' '}
+                    {/* Reliably formats database timestamps into highly readable format */}
                     {user?.createdAt
                       ? format(new Date(user.createdAt), 'MMMM yyyy')
                       : '2024'}
@@ -243,6 +296,7 @@ export default function AccountPage() {
                   <Label className="text-xs text-muted-foreground">
                     Email Address
                   </Label>
+                  {/* Email address input visually locked out since direct auth mutation is restricted */}
                   <Input
                     value={user?.email || ''}
                     disabled
@@ -261,6 +315,7 @@ export default function AccountPage() {
 
             <Separator />
 
+            {/* =============== SECURITY SECTION =============== */}
             <section
               ref={securityRef}
               id="security"
@@ -273,6 +328,7 @@ export default function AccountPage() {
                 </p>
               </div>
 
+              {/* Placeholder UI representing upcoming password modification interactions */}
               <div className="grid gap-6 max-w-xl">
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -304,6 +360,7 @@ export default function AccountPage() {
 
             <Separator />
 
+            {/* =============== SESSIONS SECTION =============== */}
             <section
               ref={sessionsRef}
               id="sessions"
@@ -319,6 +376,7 @@ export default function AccountPage() {
               <div className="border border-border/60 rounded-xl overflow-hidden divide-y divide-border/60">
                 <div className="p-4 flex items-center justify-between bg-muted/30">
                   <div className="flex items-center gap-4">
+                    {/* Read the userAgent headers actively passed back during auth handshake to intelligently display an icon */}
                     {currentSession?.userAgent
                       ?.toLowerCase()
                       .includes('mobile') ? (
@@ -347,6 +405,7 @@ export default function AccountPage() {
 
             <Separator />
 
+            {/* =============== DANGER ZONE SECTION =============== */}
             <section
               ref={dangerRef}
               id="danger"
@@ -364,6 +423,7 @@ export default function AccountPage() {
                   </p>
                 </div>
 
+                {/* Second Alert Dialog wrapper ensuring multiple manual confirmations required before fully stripping the database */}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" className="px-8 shadow-sm">
@@ -409,6 +469,9 @@ export default function AccountPage() {
   );
 }
 
+/**
+ * Functional component representing an isolated, stylistic Button specifically mapping internally to semantic sidebar layout rows.
+ */
 function NavBtn({
   active,
   onClick,
@@ -416,11 +479,11 @@ function NavBtn({
   label,
   danger = false,
 }: {
-  active: boolean;
+  active: boolean; // Triggers highlight background modifications
   onClick: () => void;
-  icon: React.ElementType;
-  label: string;
-  danger?: boolean;
+  icon: React.ElementType; // The Lucide component to render
+  label: string; // Internal rendered readable name
+  danger?: boolean; // Toggles the red UI warning state
 }) {
   return (
     <button
