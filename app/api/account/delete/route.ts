@@ -23,7 +23,7 @@ export async function DELETE() {
     const userId = session.user.id;
 
     // Directly execute a destructive delete mapped to the user's primary ID using Prisma.
-    // NOTE: Prisma will handle referential integrity and perform a cascade deletion of 
+    // NOTE: Prisma will handle referential integrity and perform a cascade deletion of
     // all linked relations (sessions, accounts, timezones, tasks, etc.)
     // because we explicitly configured `onDelete: Cascade` inside the schema.prisma definition file.
     await prisma.user.delete({

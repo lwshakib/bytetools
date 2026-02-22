@@ -36,18 +36,18 @@ import { format } from 'date-fns';
 
 /**
  * AccountPage Component
- * Provides a user-facing dashboard for managing their profile details, 
+ * Provides a user-facing dashboard for managing their profile details,
  * reviewing active sessions, and executing dangerous actions (like account deletion).
  */
 export default function AccountPage() {
   const router = useRouter(); // Next.js App router hook for programmatic navigation
-  
+
   // Custom hook wrapping Better-Auth client to asynchronously fetch the currently logged in user context
   const { data: sessionData, isPending } = useSession();
-  
+
   // Local state tracking which navigation tab on the sidebar is active
   const [activeNav, setActiveNav] = useState('profile');
-  
+
   // Local loading state while performing the destructive deletion API call
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -68,12 +68,12 @@ export default function AccountPage() {
   const dangerRef = useRef<HTMLDivElement>(null);
 
   /**
-   * Calculates position and dynamically smooth scrolls down to a specified section 
+   * Calculates position and dynamically smooth scrolls down to a specified section
    * when a sidebar button is clicked.
    */
   const scrollToSection = (section: string) => {
     setActiveNav(section); // Update active state visibly on sidebar
-    
+
     // Map the string argument cleanly to actual React ref instances
     const refs: Record<string, React.RefObject<HTMLDivElement | null>> = {
       profile: profileRef,
@@ -81,7 +81,7 @@ export default function AccountPage() {
       sessions: sessionsRef,
       danger: dangerRef,
     };
-    
+
     // Smoothly scroll using native DOM APIs mapping to the matched element
     refs[section]?.current?.scrollIntoView({
       behavior: 'smooth',
@@ -95,7 +95,7 @@ export default function AccountPage() {
    */
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Extract manual DOM value rather than using heavy controlled react states here for simplicity
     const nameInput = document.getElementById(
       'display-name'
@@ -105,7 +105,7 @@ export default function AccountPage() {
     try {
       // Trigger the Better-Auth API updating just the display name attribute
       const { error } = await authClient.updateUser({ name: nameInput.value });
-      
+
       // Give contextual UI feedback over success/failure using sonner toast
       if (error) {
         toast.error(error.message || 'Failed to update profile');
@@ -135,10 +135,10 @@ export default function AccountPage() {
         toast.error(result.error || 'Failed to delete account');
       } else {
         toast.success('Account deleted successfully');
-        
+
         // Sign out locally to wipe cookies cleanly before redirecting to the splash page
         await authClient.signOut();
-        window.location.href = '/'; 
+        window.location.href = '/';
       }
     } catch {
       toast.error('An error occurred during account deletion.');
@@ -200,7 +200,7 @@ export default function AccountPage() {
               icon={Shield}
               label="Sessions"
             />
-            
+
             {/* Split out boundary for destructive actions containing an Alert Dialogue wrapping Sign Out */}
             <div className="pt-4 mt-4 border-t border-border space-y-1">
               <AlertDialog>
@@ -230,7 +230,7 @@ export default function AccountPage() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              
+
               <NavBtn
                 active={activeNav === 'danger'}
                 onClick={() => scrollToSection('danger')}

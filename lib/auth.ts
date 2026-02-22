@@ -17,12 +17,12 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: 'postgresql', // Matches the Prisma provider type defined in schema.prisma.
   }),
-  
+
   // Enable standard email and password authentication methods.
   emailAndPassword: {
     enabled: true, // Allow users to sign up and log in using an email and password.
     requireEmailVerification: true, // Prevent users from logging in until they have clicked the verification link sent to their email.
-    
+
     // Custom asynchronous callback triggered when a user requests a password reset.
     sendResetPassword: async ({ user, url }) => {
       try {
@@ -46,7 +46,7 @@ export const auth = betterAuth({
       }
     },
   },
-  
+
   // Configure OAuth providers allowing fast, passwordless onboarding.
   socialProviders: {
     google: {
@@ -56,11 +56,11 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
-  
+
   // Settings pertaining to the email verification lifecycle.
   emailVerification: {
     sendOnSignUp: true, // Automatically trigger the verification email immediately after a successful signup registration.
-    
+
     // Custom asynchronous callback triggered to deliver the verification link to the newly registered user.
     sendVerificationEmail: async ({ user, url }) => {
       try {
@@ -77,7 +77,7 @@ export const auth = betterAuth({
       }
     },
   },
-  
+
   // Adjust application-wide account level settings.
   account: {
     accountLinking: {

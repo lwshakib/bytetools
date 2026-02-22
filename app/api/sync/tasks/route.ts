@@ -59,7 +59,8 @@ export async function POST(req: Request) {
   // We use transactions here to prevent data loss in the event Prisma fails halfway through.
   await prisma.$transaction([
     prisma.task.deleteMany({ where: { userId: session.user.id } }), // Purge Phase
-    prisma.task.createMany({ // Seed Phase
+    prisma.task.createMany({
+      // Seed Phase
       data: items.map((it) => ({
         userId: session.user.id, // Re-attach newly synced rows back to User
         text: it.text,

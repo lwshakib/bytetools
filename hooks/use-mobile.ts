@@ -18,12 +18,12 @@ export function useIsMobile() {
     // Determine the media query string dynamically based on our constant
     // e.g., "(max-width: 767px)" means width is strictly less than the breakpoint
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    
+
     // Callback event listener tailored to update our internal state when the viewport crosses the threshold.
     const onChange = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     };
-    
+
     // Subscribe to resize events using the Media Query List API (much more performant than global `resize` event)
     mql.addEventListener('change', onChange);
 

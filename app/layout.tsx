@@ -78,11 +78,11 @@ export default function RootLayout({
           disableTransitionOnChange // Prevents jarring flash of animations when switching themes
         >
           {children} {/* Renders the actual navigated page content */}
-          
           {/* Below are floating UI elements that exist globally above specific pages */}
           <Toaster /> {/* Mounts the toast notification stack */}
           <AuthModal /> {/* Mounts the global Auth Modal, managed by Zustand */}
-          <VerificationListener /> {/* Invisible component actively handling auth callback verifications */}
+          <VerificationListener />{' '}
+          {/* Invisible component actively handling auth callback verifications */}
         </ThemeProvider>
       </body>
     </html>

@@ -6,7 +6,7 @@ import { createAuthClient } from 'better-auth/react'; // Imports the factory fun
 
 // Instantiate the specialized Better-Auth client to handle network requests and local session caching.
 export const authClient = createAuthClient({
-  // The absolute base URL for the backend auth server endpoints (/api/auth/*). 
+  // The absolute base URL for the backend auth server endpoints (/api/auth/*).
   // It falls back to localhost for development if the public env variable is missing.
   baseURL: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
 });

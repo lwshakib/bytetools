@@ -5,7 +5,7 @@
 import { auth } from '@/lib/auth'; // Extracted singleton auth core
 import prisma from '@/lib/prisma'; // Node backend DB connector mapping
 import { NextResponse } from 'next/server'; // Specialized route handler output
-import { headers } from 'next/headers'; // Request header manipulation 
+import { headers } from 'next/headers'; // Request header manipulation
 
 /**
  * GET Handler
@@ -55,7 +55,8 @@ export async function POST(req: Request) {
   // Perform a destructive wipe explicitly pinned to the actor's logged context bounds, blocking cross-user bleeds
   await prisma.$transaction([
     prisma.userTimezone.deleteMany({ where: { userId: session.user.id } }), // Purge Phase
-    prisma.userTimezone.createMany({ // Seed Phase
+    prisma.userTimezone.createMany({
+      // Seed Phase
       data: items.map((it) => ({
         userId: session.user.id, // Explicit linking mapped
         city: it.city,

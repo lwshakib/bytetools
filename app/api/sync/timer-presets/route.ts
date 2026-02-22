@@ -55,7 +55,8 @@ export async function POST(req: Request) {
   // Perform a destructive sync: wipe existing presets mapped to the user and insert the new array.
   await prisma.$transaction([
     prisma.timerPreset.deleteMany({ where: { userId: session.user.id } }), // Purge Phase
-    prisma.timerPreset.createMany({ // Seed Phase
+    prisma.timerPreset.createMany({
+      // Seed Phase
       data: items.map((it: { name: string; duration: number }) => ({
         userId: session.user.id, // Re-attach newly synced rows back to User primary ID securely
         name: it.name,
