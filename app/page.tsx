@@ -25,7 +25,6 @@ import {
   Gamepad2,
   Hash,
   Scale,
-  Layout,
   Smartphone,
   EyeOff,
   Menu,
@@ -287,7 +286,7 @@ export default function Home() {
                     { href: '#tools', label: 'Tools' },
                     { href: '#features', label: 'Features' },
                     { href: '#faq', label: 'FAQ' },
-                  ].map((item, idx) => (
+                  ].map((item) => (
                     <div key={item.href}>
                       <SheetClose asChild>
                         <Link
@@ -470,7 +469,7 @@ export default function Home() {
             </h2>
             <p className="text-muted-foreground">
               ByteTools is built with focus on simplicity, speed, and privacy.
-              Here's why you'll love it.
+              Here&apos;s why you&apos;ll love it.
             </p>
           </div>
 

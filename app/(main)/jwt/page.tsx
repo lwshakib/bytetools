@@ -6,7 +6,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -21,18 +20,14 @@ import {
   ShieldAlert,
   Eye,
   EyeOff,
-  Key,
   Lock,
-  Unlock,
   Package,
-  FileCode,
   Info,
   CloudDownload,
   Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import * as jose from 'jose';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 
@@ -52,14 +47,21 @@ export default function JWTToolPage() {
   const [tokenToDecode, setTokenToDecode] = useState('');
 
   /* Structured data from the decoded header/payload */
-  const [decodedHeader, setDecodedHeader] = useState<any>(null);
-  const [decodedPayload, setDecodedPayload] = useState<any>(null);
+  const [decodedHeader, setDecodedHeader] = useState<Record<string, unknown> | null>(null);
+  const [decodedPayload, setDecodedPayload] = useState<Record<string, unknown> | null>(null);
 
   /* Validation status of the JWT's signature */
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [copiedType, setCopiedType] = useState<string | null>(null);
 
-  const [savedJwts, setSavedJwts] = useState<any[]>([]);
+  interface SavedJWT {
+    id: string;
+    name: string;
+    token: string;
+    secret?: string;
+  }
+
+  const [savedJwts, setSavedJwts] = useState<SavedJWT[]>([]);
   const [jwtName, setJwtName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -94,8 +96,9 @@ export default function JWTToolPage() {
 
       setEncodedToken(token);
       toast.success('Token generated');
-    } catch (error: any) {
-      toast.error('Error: ' + error.message);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      toast.error('Error: ' + msg);
     }
   }, [payload, secret]);
 
@@ -119,13 +122,13 @@ export default function JWTToolPage() {
           const secretUint8 = new TextEncoder().encode(secret);
           await jose.jwtVerify(tokenToDecode, secretUint8);
           setIsVerified(true);
-        } catch (err) {
+        } catch {
           setIsVerified(false);
         }
       } else {
         setIsVerified(null);
       }
-    } catch (error: any) {
+    } catch {
       setIsVerified(false);
       setDecodedHeader({ error: 'Invalid format' });
       setDecodedPayload({ error: 'Could not decode' });
@@ -144,22 +147,22 @@ export default function JWTToolPage() {
     setTimeout(() => setCopiedType(null), 2000);
   };
 
-  const fetchSavedJwts = async () => {
+  const fetchSavedJwts = useCallback(async () => {
     if (!session?.user) return;
     try {
       const res = await fetch('/api/jwt');
       const data = await res.json();
       setSavedJwts(data);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // Failed to fetch tokens
     }
-  };
+  }, [session?.user]);
 
   useEffect(() => {
     if (session?.user) {
       fetchSavedJwts();
     }
-  }, [session?.user]);
+  }, [session?.user, fetchSavedJwts]);
 
   const handleSaveJwt = async () => {
     if (!session?.user) {
@@ -189,7 +192,7 @@ export default function JWTToolPage() {
       } else {
         toast.error('Failed to save');
       }
-    } catch (err) {
+    } catch {
       toast.error('Error occurred');
     } finally {
       setIsSaving(false);
@@ -207,12 +210,12 @@ export default function JWTToolPage() {
         toast.success('Deleted');
         fetchSavedJwts();
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete');
     }
   };
 
-  const loadSavedJwt = (item: any) => {
+  const loadSavedJwt = (item: SavedJWT) => {
     setTokenToDecode(item.token);
     if (item.secret) {
       setSecret(item.secret);
@@ -464,7 +467,7 @@ export default function JWTToolPage() {
                             Algorithm
                           </span>
                           <span className="text-xs font-mono font-bold">
-                            {decodedHeader?.alg || '---'}
+                            {String(decodedHeader?.alg || '---')}
                           </span>
                         </div>
                       </div>

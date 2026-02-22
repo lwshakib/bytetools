@@ -6,7 +6,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -18,17 +17,13 @@ import {
   RefreshCw,
   Check,
   Shield,
-  ShieldAlert,
-  ShieldCheck,
   CloudDownload,
   Trash2,
-  Key,
   Lock,
-  Plus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/lib/auth-client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';
@@ -56,7 +51,15 @@ export default function PasswordGeneratorPage() {
     bg: 'bg-red-500',
   });
 
-  const [savedPasswords, setSavedPasswords] = useState<any[]>([]);
+  interface SavedPassword {
+    id: string;
+    name: string;
+    value?: string;
+    hashedValue?: string;
+    createdAt: string;
+  }
+
+  const [savedPasswords, setSavedPasswords] = useState<SavedPassword[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [passwordName, setPasswordName] = useState('');
@@ -145,25 +148,25 @@ export default function PasswordGeneratorPage() {
     toast.success('Copied to clipboard');
   };
 
-  const fetchSavedPasswords = async () => {
+  const fetchSavedPasswords = useCallback(async () => {
     if (!session?.user) return;
     setIsLoading(true);
     try {
       const res = await fetch('/api/passwords');
       const data = await res.json();
       setSavedPasswords(data);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // Failed to fetch saved passwords
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session?.user]);
 
   useEffect(() => {
     if (session?.user) {
       fetchSavedPasswords();
     }
-  }, [session?.user]);
+  }, [session?.user, fetchSavedPasswords]);
 
   const handleSavePassword = async () => {
     if (!session?.user) {
@@ -193,10 +196,10 @@ export default function PasswordGeneratorPage() {
         setPasswordName('');
         fetchSavedPasswords();
       } else {
-        const err = await res.json();
-        toast.error(err.error || 'Failed to save');
+        const errorData = await res.json();
+        toast.error(errorData.error || 'Failed to save');
       }
-    } catch (err) {
+    } catch {
       toast.error('Error saving password');
     } finally {
       setIsSaving(false);
@@ -214,7 +217,7 @@ export default function PasswordGeneratorPage() {
         toast.success('Deleted successfully');
         fetchSavedPasswords();
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete');
     }
   };
@@ -427,7 +430,7 @@ export default function PasswordGeneratorPage() {
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-primary rounded-md"
                               onClick={() =>
-                                copyToClipboard(item.value || item.hashedValue)
+                                copyToClipboard(item.value || item.hashedValue || '')
                               }
                             >
                               <Copy className="w-3.5 h-3.5" />

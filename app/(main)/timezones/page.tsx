@@ -6,21 +6,13 @@ import { TimezoneItem } from '@/hooks/use-timezone-store';
 import { TimezoneCard } from '@/components/timezone-tool/timezone-card';
 import { AddTimezoneCard } from '@/components/timezone-tool/add-timezone-card';
 import { useSession } from '@/lib/auth-client';
-import { toast } from 'sonner';
-import { motion } from 'framer-motion';
-import { Clock, Globe, ShieldCheck } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TimezonesPage() {
   /* Selected timezones managed by the global store */
   const {
     selectedTimezones,
-    setBaseTime,
     setAllTimezones,
-    baseTime,
-    timeOffset,
   } = useTimezoneStore();
 
   /* Authentication session data */
@@ -29,12 +21,22 @@ export default function TimezonesPage() {
   /* Loading state for fetching data from the cloud */
   const [isLoading, setIsLoading] = useState(false);
 
-  // Dynamic Time Tick removed to improve slider performance as requested
+  const syncToCloud = React.useCallback(async (items: TimezoneItem[]) => {
+    try {
+      await fetch('/api/sync/timezones', {
+        method: 'POST',
+        body: JSON.stringify(items),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (err) {
+      console.error('Failed to sync timezones:', err);
+    }
+  }, []);
 
   // Sync with DB
   useEffect(() => {
     if (session?.user) {
-      setIsLoading(true);
+      Promise.resolve().then(() => setIsLoading(true));
       // Fetch from DB
       fetch('/api/sync/timezones')
         .then((res) => res.json())
@@ -50,7 +52,7 @@ export default function TimezonesPage() {
         .catch((err) => console.error('Failed to fetch timezones:', err))
         .finally(() => setIsLoading(false));
     }
-  }, [session?.user]);
+  }, [session?.user, syncToCloud, selectedTimezones, setAllTimezones]);
 
   // Sync to DB when selectedTimezones change
   useEffect(() => {
@@ -60,19 +62,7 @@ export default function TimezonesPage() {
       }, 2000); // Debounce sync
       return () => clearTimeout(timeout);
     }
-  }, [selectedTimezones, session?.user]);
-
-  const syncToCloud = async (items: TimezoneItem[]) => {
-    try {
-      await fetch('/api/sync/timezones', {
-        method: 'POST',
-        body: JSON.stringify(items),
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } catch (err) {
-      console.error('Failed to sync timezones:', err);
-    }
-  };
+  }, [selectedTimezones, session?.user, syncToCloud]);
 
   return (
     <div className="flex flex-1 flex-col h-full bg-background overflow-y-auto">

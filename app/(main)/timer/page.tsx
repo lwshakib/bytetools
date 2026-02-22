@@ -7,13 +7,9 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Settings,
   Plus,
   Trash2,
   Timer as TimerIcon,
-  ShieldCheck,
-  Zap,
-  Activity,
   Package,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -81,12 +77,21 @@ export default function TimerPage() {
     const saved = localStorage.getItem('bt-timer-presets');
     if (saved) {
       try {
-        setCustomPresets(JSON.parse(saved));
-      } catch (e) {}
+        const parsed = JSON.parse(saved);
+        Promise.resolve().then(() => setCustomPresets(parsed));
+      } catch (_e) {}
     }
   }, []);
 
-  // Cloud Sync
+  const handleTimerComplete = React.useCallback(() => {
+    setIsRunning(false);
+    setIsEditing(true);
+    try {
+      new Audio('/notification.mp3').play().catch(() => {});
+    } catch (_e) {}
+    toast.success('Temporal count completed.');
+  }, []);
+
   useEffect(() => {
     if (session?.user) {
       fetch('/api/sync/timer-presets')
@@ -94,7 +99,7 @@ export default function TimerPage() {
         .then((data) => {
           if (data?.length) setCustomPresets(data);
         })
-        .catch((err) => console.error(err));
+        .catch(() => {});
     }
   }, [session?.user]);
 
@@ -127,27 +132,20 @@ export default function TimerPage() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isRunning, timeLeft]);
+  }, [isRunning, timeLeft, handleTimerComplete]);
 
   useEffect(() => {
     if (!isEditing) {
       const h = Math.floor(timeLeft / 3600);
       const m = Math.floor((timeLeft % 3600) / 60);
       const s = timeLeft % 60;
-      setHours(h.toString().padStart(2, '0'));
-      setMinutes(m.toString().padStart(2, '0'));
-      setSeconds(s.toString().padStart(2, '0'));
+      Promise.resolve().then(() => {
+        setHours(h.toString().padStart(2, '0'));
+        setMinutes(m.toString().padStart(2, '0'));
+        setSeconds(s.toString().padStart(2, '0'));
+      });
     }
   }, [timeLeft, isEditing]);
-
-  const handleTimerComplete = () => {
-    setIsRunning(false);
-    setIsEditing(true);
-    try {
-      new Audio('/notification.mp3').play().catch(() => {});
-    } catch (e) {}
-    toast.success('Temporal count completed.');
-  };
 
   const [lastDuration, setLastDuration] = useState({
     h: '00',

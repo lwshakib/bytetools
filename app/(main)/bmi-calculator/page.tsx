@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -75,20 +75,15 @@ export default function BMICalculatorPage() {
   const [heightInches, setHeightInches] = useState('7');
   const [weightPounds, setWeightPounds] = useState('154');
 
-  /* State to store the final BMI calculation result */
-  const [bmiResult, setBmiResult] = useState<BMIResult | null>(null);
-
-  /**
-   * Effect hook to recalculate BMI whenever any input changes.
-   */
-  useEffect(() => {
-    let bmi = 0;
+  /* Recalculate BMI whenever any input changes during render */
+  const bmiResult = React.useMemo(() => {
+    let bmiValue = 0;
     if (unit === 'metric') {
       /* BMI Formula (Metric): kg / m^2 */
       const heightM = parseFloat(height) / 100;
       const weightKg = parseFloat(weight);
       if (heightM > 0 && weightKg > 0) {
-        bmi = weightKg / (heightM * heightM);
+        bmiValue = weightKg / (heightM * heightM);
       }
     } else {
       /* BMI Formula (Imperial): (lbs / inches^2) * 703 */
@@ -96,16 +91,11 @@ export default function BMICalculatorPage() {
         parseFloat(heightFeet) * 12 + parseFloat(heightInches);
       const weightLbs = parseFloat(weightPounds);
       if (heightInchesTotal > 0 && weightLbs > 0) {
-        bmi = (weightLbs / (heightInchesTotal * heightInchesTotal)) * 703;
+        bmiValue = (weightLbs / (heightInchesTotal * heightInchesTotal)) * 703;
       }
     }
 
-    if (bmi > 0) {
-      /* Update the result state with category breakdown */
-      setBmiResult(getBMICategory(bmi));
-    } else {
-      setBmiResult(null);
-    }
+    return bmiValue > 0 ? getBMICategory(bmiValue) : null;
   }, [unit, height, weight, heightFeet, heightInches, weightPounds]);
 
   return (

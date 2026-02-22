@@ -4,9 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
-import { Github, Clock } from 'lucide-react';
+import { Github } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Breadcrumb,
@@ -38,7 +37,6 @@ export function MainHeader() {
   const pageTitle = routeMap[pathname] || 'Dashboard';
 
   useEffect(() => {
-    setCurrentTime(new Date());
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);

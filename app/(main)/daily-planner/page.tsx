@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,15 +8,11 @@ import {
   Plus,
   Trash2,
   Calendar as CalendarIcon,
-  CheckSquare,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
   ChevronUp,
   Repeat,
-  Inbox,
-  ListTodo,
-  CalendarCheck,
   Package,
 } from 'lucide-react';
 import {
@@ -90,22 +86,24 @@ export default function DailyPlannerPage() {
   useEffect(() => {
     const savedTasks = localStorage.getItem('bt-planner-tasks-v3');
     const savedRoutines = localStorage.getItem('bt-planner-routines-v2');
-    if (savedTasks) {
-      try {
-        setTasks(JSON.parse(savedTasks));
-      } catch (e) {}
-    }
-    if (savedRoutines) {
-      try {
-        setRoutines(JSON.parse(savedRoutines));
-      } catch (e) {}
-    }
+    Promise.resolve().then(() => {
+      if (savedTasks) {
+        try {
+          setTasks(JSON.parse(savedTasks));
+        } catch {}
+      }
+      if (savedRoutines) {
+        try {
+          setRoutines(JSON.parse(savedRoutines));
+        } catch {}
+      }
+    });
   }, []);
 
   // Sync with DB
   useEffect(() => {
     if (session?.user) {
-      setIsLoading(true);
+      Promise.resolve().then(() => setIsLoading(true));
       Promise.all([
         fetch('/api/sync/tasks').then((res) => res.json()),
         fetch('/api/sync/routines').then((res) => res.json()),
@@ -114,7 +112,7 @@ export default function DailyPlannerPage() {
           if (taskData?.length) setTasks(taskData);
           if (routineData?.length) setRoutines(routineData);
         })
-        .catch((err) => console.error(err))
+        .catch(() => {})
         .finally(() => setIsLoading(false));
     }
   }, [session?.user]);
@@ -179,14 +177,14 @@ export default function DailyPlannerPage() {
     return [baseDate];
   }, [baseDate, columnCount]);
 
-  const addTask = (
+  const addTask = useCallback((
     text: string,
     dateKey: string,
     category: Task['category'] = 'daily',
     routineId: string | null = null
   ) => {
     const newTask: Task = {
-      id: Math.random().toString(36).substring(2, 9),
+      id: Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
       text,
       completed: false,
       date: dateKey,
@@ -195,16 +193,16 @@ export default function DailyPlannerPage() {
     };
     setTasks((prev) => [...prev, newTask]);
     if (!routineId) toast.success('Objective recorded');
-  };
+  }, []);
 
-  const toggleTask = (
+  const toggleTask = useCallback((
     id: string,
-    routineData?: { text: string; dateKey: string; routineId: string }
+    routineData?: { text: string; dateKey: string; routineId: string | null }
   ) => {
     if (id.startsWith('virtual-') && routineData) {
       // Realize virtual routine task
       const newTask: Task = {
-        id: Math.random().toString(36).substring(2, 9),
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
         text: routineData.text,
         completed: true,
         date: routineData.dateKey,
@@ -217,12 +215,12 @@ export default function DailyPlannerPage() {
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
     );
-  };
+  }, []);
 
-  const deleteTask = (id: string) => {
+  const deleteTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
     toast.info('Objective purged');
-  };
+  }, []);
 
   const getPendingTasks = (currentDateKey: string) => {
     return tasks.filter(
@@ -433,9 +431,9 @@ function DayColumn({
   routines: Routine[];
   pendingTasks: Task[];
   onAddTask: (text: string) => void;
-  onToggleTask: (id: string, routineData?: any) => void;
+  onToggleTask: (id: string, routineData?: { text: string; dateKey: string; routineId: string | null }) => void;
   onDeleteTask: (id: string) => void;
-  session: any;
+  session: { user: { id: string } | null } | null;
 }) {
   const [newTaskText, setNewTaskText] = useState('');
   const [showPending, setShowPending] = useState(true);
@@ -611,7 +609,7 @@ function TaskItem({
   isPending = false,
 }: {
   task: Task;
-  onToggle: (id: string, data?: any) => void;
+  onToggle: (id: string, data?: { text: string; dateKey: string; routineId: string | null }) => void;
   onDelete: (id: string) => void;
   isPending?: boolean;
 }) {
@@ -632,7 +630,7 @@ function TaskItem({
               ? {
                   text: task.text,
                   dateKey: task.date,
-                  routineId: task.routineId,
+                  routineId: task.routineId ?? null,
                 }
               : undefined
           )
@@ -886,9 +884,9 @@ function TaskDumpTab({
   showCompleted: boolean;
   setShowCompleted: (v: boolean) => void;
   onAddTask: (text: string) => void;
-  onToggleTask: (id: string) => void;
+  onToggleTask: (id: string, routineData?: { text: string; dateKey: string; routineId: string | null }) => void;
   onDeleteTask: (id: string) => void;
-  session: any;
+  session: { user: { id: string } | null } | null;
 }) {
   const [newText, setNewText] = useState('');
   return (
@@ -934,7 +932,7 @@ function TaskDumpTab({
         </Button>
       </div>
       <div className="space-y-1">
-        {activeTasks.map((t: any) => (
+        {activeTasks.map((t) => (
           <TaskItem
             key={t.id}
             task={t}
@@ -962,7 +960,7 @@ function TaskDumpTab({
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden space-y-1 opacity-30"
               >
-                {completedTasks.map((t: any) => (
+                {completedTasks.map((t) => (
                   <TaskItem
                     key={t.id}
                     task={t}

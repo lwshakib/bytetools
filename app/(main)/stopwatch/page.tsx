@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Play,
   Pause,
@@ -36,15 +35,16 @@ export default function StopwatchPage() {
   const startTimeRef = useRef<number>(0);
   const requestRef = useRef<number | undefined>(undefined);
 
-  const animate = useCallback(
-    (timestamp: number) => {
-      if (!startTimeRef.current) startTimeRef.current = timestamp - time;
+  const animate = useCallback(function animate(timestamp: number) {
+    setTime((prevTime) => {
+      if (startTimeRef.current === 0) {
+        startTimeRef.current = timestamp - prevTime;
+      }
       const current = timestamp - startTimeRef.current;
-      setTime(current);
-      requestRef.current = requestAnimationFrame(animate);
-    },
-    [time]
-  );
+      return current;
+    });
+    requestRef.current = requestAnimationFrame(animate);
+  }, []);
 
   useEffect(() => {
     if (isRunning) {

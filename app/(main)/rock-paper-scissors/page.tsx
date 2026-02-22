@@ -2,14 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Trophy,
   RotateCcw,
-  User,
-  Cpu,
-  ShieldCheck,
   Zap,
   Activity,
 } from 'lucide-react';
@@ -42,8 +37,11 @@ export default function RockPaperScissorsPage() {
     const saved = localStorage.getItem('bt-rps-scores');
     if (saved) {
       try {
-        setScores(JSON.parse(saved));
-      } catch (e) {}
+        const parsed = JSON.parse(saved);
+        Promise.resolve().then(() => setScores(parsed));
+      } catch {
+        // Ignored
+      }
     }
   }, []);
 

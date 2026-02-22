@@ -3,11 +3,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Plus,
   RotateCcw,
-  Timer as TimerIcon,
   Play,
   Pause,
   Trash2,
@@ -15,9 +13,7 @@ import {
   Coffee,
   Zap,
   CheckCircle2,
-  Circle,
 } from 'lucide-react';
-import { format, startOfToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -61,9 +57,10 @@ export default function PomodoroPage() {
     const saved = localStorage.getItem('bt-pomodoro-tasks');
     if (saved) {
       try {
-        setTasks(JSON.parse(saved));
-      } catch (e) {
-        console.error(e);
+        const parsed = JSON.parse(saved);
+        Promise.resolve().then(() => setTasks(parsed));
+      } catch {
+        // Ignored
       }
     }
   }, []);
@@ -72,21 +69,7 @@ export default function PomodoroPage() {
     localStorage.setItem('bt-pomodoro-tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  useEffect(() => {
-    if (isRunning && timeLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0) {
-      handleTimerComplete();
-    }
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isRunning, timeLeft]);
-
-  const handleTimerComplete = () => {
+  const handleTimerComplete = useCallback(() => {
     setIsRunning(false);
     if (mode === 'focus') {
       setSessionsToday((prev) => prev + 1);
@@ -94,7 +77,21 @@ export default function PomodoroPage() {
     } else {
       toast.success('Break complete');
     }
-  };
+  }, [mode]);
+
+  useEffect(() => {
+    if (isRunning && timeLeft > 0) {
+      intervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      Promise.resolve().then(() => handleTimerComplete());
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isRunning, timeLeft, handleTimerComplete]);
 
   const toggleTimer = () => setIsRunning(!isRunning);
   const resetTimer = () => {

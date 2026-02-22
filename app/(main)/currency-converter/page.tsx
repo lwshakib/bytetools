@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/select';
 import { ArrowRightLeft, Globe, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 
 /**
  * Static list of supported currencies with their codes, names, and symbols.
@@ -126,22 +125,20 @@ export default function CurrencyConverterPage() {
   /* Selected target currency */
   const [toCurrency, setToCurrency] = useState('EUR');
 
-  /* The result of the conversion */
-  const [convertedAmount, setConvertedAmount] = useState('0.92');
-
-  /* The current exchange rate used */
-  const [rate, setRate] = useState(0.92);
+  /**
+   * Recalculate the exchange rate whenever currencies change during render.
+   */
+  const rate = React.useMemo(() => {
+    return getExchangeRate(fromCurrency, toCurrency);
+  }, [fromCurrency, toCurrency]);
 
   /**
-   * Effect hook to update the conversion result whenever
-   * amount or currencies pulse/change.
+   * Recalculate converted amount based on rate and input amount during render.
    */
-  useEffect(() => {
-    const rate = getExchangeRate(fromCurrency, toCurrency);
-    setRate(rate);
+  const convertedAmount = React.useMemo(() => {
     const numAmount = parseFloat(amount) || 0;
-    setConvertedAmount((numAmount * rate).toFixed(2));
-  }, [amount, fromCurrency, toCurrency]);
+    return (numAmount * rate).toFixed(2);
+  }, [amount, rate]);
 
   /**
    * Swaps the 'From' and 'To' currencies.

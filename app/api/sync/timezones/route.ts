@@ -27,6 +27,12 @@ export async function GET() {
   return NextResponse.json(timezones);
 }
 
+interface TimezoneInput {
+  city: string;
+  country?: string;
+  timezone: string;
+}
+
 /**
  * Synchronizes timezones by replacing the user's entire list with the current client-side state.
  * Uses a transaction to ensure atomic deletion and recreation.
@@ -40,13 +46,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const items = await req.json();
+  const items = (await req.json()) as TimezoneInput[];
 
   // Perform a destructive sync: wipe existing selections and insert the new list.
   await prisma.$transaction([
     prisma.userTimezone.deleteMany({ where: { userId: session.user.id } }),
     prisma.userTimezone.createMany({
-      data: items.map((it: any) => ({
+      data: items.map((it) => ({
         userId: session.user.id,
         city: it.city,
         country: it.country || '',

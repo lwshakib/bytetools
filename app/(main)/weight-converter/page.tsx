@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,7 +13,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { ArrowRightLeft, Scale, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 
 const WEIGHT_UNITS = [
   { code: 'kg', name: 'Kilograms', symbol: 'kg' },
@@ -81,13 +80,11 @@ export default function WeightConverterPage() {
   const [fromUnit, setFromUnit] = useState('kg');
   const [toUnit, setToUnit] = useState('lb');
 
-  /* The calculated result of the weight transformation */
-  const [convertedAmount, setConvertedAmount] = useState('2.20462');
-
-  useEffect(() => {
+  /* The calculated result of the weight transformation during render */
+  const convertedAmount = React.useMemo(() => {
     const numAmount = parseFloat(amount) || 0;
     const converted = convertWeight(numAmount, fromUnit, toUnit);
-    setConvertedAmount(converted.toFixed(6).replace(/\.?0+$/, ''));
+    return converted.toFixed(6).replace(/\.?0+$/, '');
   }, [amount, fromUnit, toUnit]);
 
   const handleSwap = () => {

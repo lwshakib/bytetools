@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Lock, User, Github, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAuthModal } from '@/hooks/use-auth-modal';
@@ -50,7 +50,7 @@ export function AuthModal() {
           },
         }
       );
-    } catch (error) {
+    } catch {
       toast.error('Something went wrong');
     } finally {
       setIsLoading(false);
@@ -81,7 +81,7 @@ export function AuthModal() {
           },
         }
       );
-    } catch (error) {
+    } catch {
       toast.error('Something went wrong');
     } finally {
       setIsLoading(false);
@@ -102,7 +102,7 @@ export function AuthModal() {
         toast.success('Reset link sent to your email!');
         setView('login');
       }
-    } catch (error) {
+    } catch {
       toast.error('Something went wrong');
     } finally {
       setIsLoading(false);
@@ -116,7 +116,7 @@ export function AuthModal() {
         provider: 'google',
         callbackURL: window.location.href,
       });
-    } catch (error) {
+    } catch {
       toast.error('Failed to sign in with Google');
       setIsLoading(false);
     }
@@ -144,7 +144,7 @@ export function AuthModal() {
           </DialogTitle>
           <DialogDescription className="text-center">
             {view === 'forgot-password'
-              ? "Enter your email address and we'll send you a link to reset your password."
+              ? "Enter your email address and we&apos;ll send you a link to reset your password."
               : view === 'verification-sent'
                 ? 'Verify your email to access your account.'
                 : 'Sign in to sync your tools, tasks, and settings across all your devices.'}
@@ -196,7 +196,7 @@ export function AuthModal() {
                 Check your email
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                We've sent a verification link to{' '}
+                We&apos;ve sent a verification link to{' '}
                 <span className="font-medium text-foreground">
                   {email || 'your email'}
                 </span>
@@ -222,7 +222,7 @@ export function AuthModal() {
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground bg-muted/50 p-3 rounded-lg border border-border/40">
-              Didn't receive an email? Check your spam folder or try signing in
+              Didn&apos;t receive an email? Check your spam folder or try signing in
               again to resend it.
             </p>
           </div>

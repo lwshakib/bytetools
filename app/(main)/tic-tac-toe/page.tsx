@@ -2,22 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   RotateCcw,
-  User,
-  Cpu,
-  Trophy,
-  Settings2,
   X,
   Circle,
-  Hash,
-  Activity,
-  Zap,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 type Player = 'X' | 'O' | null;
 type GameMode = 'PvP' | 'PvE';
@@ -64,39 +55,44 @@ export default function TicTacToePage() {
     return null;
   }, []);
 
-  const minimax = useCallback(
-    (squares: Player[], depth: number, isMaximizing: boolean): number => {
-      const result = calculateWinner(squares);
-      if (result?.winner === 'O') return 10 - depth;
-      if (result?.winner === 'X') return depth - 10;
-      if (result?.winner === 'Draw') return 0;
+  const updateScores = useCallback((w: Player | 'Draw') => {
+    setScores((prev) => ({
+      ...prev,
+      [w === 'X' ? 'X' : w === 'O' ? 'O' : 'Draws']:
+        prev[w === 'X' ? 'X' : w === 'O' ? 'O' : 'Draws'] + 1,
+    }));
+  }, []);
 
-      if (isMaximizing) {
-        let bestScore = -Infinity;
-        for (let i = 0; i < 9; i++) {
-          if (!squares[i]) {
-            squares[i] = 'O';
-            const score = minimax(squares, depth + 1, false);
-            squares[i] = null;
-            bestScore = Math.max(score, bestScore);
-          }
+  function minimax(squares: Player[], depth: number, isMaximizing: boolean): number {
+    const result = calculateWinner(squares);
+    if (result?.winner === 'O') return 10 - depth;
+    if (result?.winner === 'X') return depth - 10;
+    if (result?.winner === 'Draw') return 0;
+
+    if (isMaximizing) {
+      let bestScore = -Infinity;
+      for (let i = 0; i < 9; i++) {
+        if (!squares[i]) {
+          squares[i] = 'O';
+          const score = minimax(squares, depth + 1, false);
+          squares[i] = null;
+          bestScore = Math.max(score, bestScore);
         }
-        return bestScore;
-      } else {
-        let bestScore = Infinity;
-        for (let i = 0; i < 9; i++) {
-          if (!squares[i]) {
-            squares[i] = 'X';
-            const score = minimax(squares, depth + 1, true);
-            squares[i] = null;
-            bestScore = Math.min(score, bestScore);
-          }
-        }
-        return bestScore;
       }
-    },
-    [calculateWinner]
-  );
+      return bestScore;
+    } else {
+      let bestScore = Infinity;
+      for (let i = 0; i < 9; i++) {
+        if (!squares[i]) {
+          squares[i] = 'X';
+          const score = minimax(squares, depth + 1, true);
+          squares[i] = null;
+          bestScore = Math.min(score, bestScore);
+        }
+      }
+      return bestScore;
+    }
+  }
 
   const makeAIMove = useCallback(
     (currentBoard: Player[]) => {
@@ -126,7 +122,7 @@ export default function TicTacToePage() {
         }
       }
     },
-    [minimax, calculateWinner]
+    [calculateWinner, updateScores]
   );
 
   useEffect(() => {
@@ -135,14 +131,6 @@ export default function TicTacToePage() {
       return () => clearTimeout(timer);
     }
   }, [isXNext, winner, gameMode, board, makeAIMove]);
-
-  const updateScores = (w: Player | 'Draw') => {
-    setScores((prev) => ({
-      ...prev,
-      [w === 'X' ? 'X' : w === 'O' ? 'O' : 'Draws']:
-        prev[w === 'X' ? 'X' : w === 'O' ? 'O' : 'Draws'] + 1,
-    }));
-  };
 
   const handleClick = (i: number) => {
     if (board[i] || winner) return;

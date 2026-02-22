@@ -26,6 +26,14 @@ export async function GET() {
   return NextResponse.json(tasks);
 }
 
+interface TaskInput {
+  text: string;
+  completed: boolean;
+  date: string;
+  category: 'daily' | 'dump';
+  routineId?: string | null;
+}
+
 /**
  * Synchronizes tasks by replacing the entire set of user tasks.
  * Uses a transaction to ensure atomic deletion and recreation.
@@ -39,13 +47,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const items = await req.json();
+  const items = (await req.json()) as TaskInput[];
 
   // Perform a destructive sync: wipe existing tasks and insert the current state from the client.
   await prisma.$transaction([
     prisma.task.deleteMany({ where: { userId: session.user.id } }),
     prisma.task.createMany({
-      data: items.map((it: any) => ({
+      data: items.map((it) => ({
         userId: session.user.id,
         text: it.text,
         completed: it.completed,

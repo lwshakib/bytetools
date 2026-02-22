@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,18 +11,14 @@ import {
   Scan,
   Download,
   Copy,
-  RefreshCw,
   Link as LinkIcon,
   Type,
   Mail,
   Wifi,
-  Upload,
-  Plus,
   CloudDownload,
   Trash2,
   Package,
   Check,
-  ShieldCheck,
   Camera,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -47,10 +43,18 @@ export default function QRCodePage() {
   const [size, setSize] = useState(256);
   const [level, setLevel] = useState<'L' | 'M' | 'Q' | 'H'>('H');
 
+  interface SavedQRCode {
+    id: string;
+    name: string;
+    content: string;
+    fgColor: string;
+    level: 'L' | 'M' | 'Q' | 'H';
+  }
+
   /* State for saving QR configurations to the cloud vault */
   const [qrName, setQrName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [savedQrCodes, setSavedQrCodes] = useState<any[]>([]);
+  const [savedQrCodes, setSavedQrCodes] = useState<SavedQRCode[]>([]);
   const [copyingValue, setCopyingValue] = useState(false);
 
   /* Scanning logic states */
@@ -60,22 +64,22 @@ export default function QRCodePage() {
   /* Reference for the HTML5 QR Scanner instance */
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
-  const fetchSavedQrCodes = async () => {
+  const fetchSavedQrCodes = useCallback(async () => {
     if (!session?.user) return;
     try {
       const res = await fetch('/api/qrcode');
       const data = await res.json();
       setSavedQrCodes(data);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // Failed to fetch QR codes
     }
-  };
+  }, [session?.user]);
 
   useEffect(() => {
     if (session?.user) {
       fetchSavedQrCodes();
     }
-  }, [session?.user]);
+  }, [session?.user, fetchSavedQrCodes]);
 
   const handleSaveQr = async () => {
     if (!session?.user) {
@@ -105,7 +109,7 @@ export default function QRCodePage() {
         setQrName('');
         fetchSavedQrCodes();
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to save');
     } finally {
       setIsSaving(false);
@@ -124,15 +128,15 @@ export default function QRCodePage() {
         toast.success('Deleted');
         fetchSavedQrCodes();
       }
-    } catch (err) {
+    } catch {
       toast.error('Delete failed');
     }
   };
 
-  const loadSavedQr = (item: any) => {
+  const loadSavedQr = (item: SavedQRCode) => {
     setValue(item.content);
     setFgColor(item.fgColor);
-    setLevel(item.level as any);
+    setLevel(item.level);
     toast.success('Config Loaded');
   };
 
@@ -185,7 +189,7 @@ export default function QRCodePage() {
         },
         () => {}
       );
-    } catch (err) {
+    } catch {
       toast.error('Camera access failed');
       setIsScanning(false);
     }

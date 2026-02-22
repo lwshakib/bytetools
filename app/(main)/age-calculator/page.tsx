@@ -1,51 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import {
   Calendar as CalendarIcon,
   Clock,
   Activity,
-  CalendarDays,
 } from 'lucide-react';
 import {
-  format,
   differenceInYears,
   differenceInMonths,
   differenceInDays,
   differenceInHours,
   differenceInMinutes,
   differenceInSeconds,
-  startOfToday,
-  setYear as setDateYear,
-  setMonth as setDateMonth,
-  setDate as setDateDay,
-  setHours as setDateHours,
-  setMinutes as setDateMinutes,
-  getYear,
-  getMonth,
-  getDate,
-  getHours,
-  getMinutes,
-  lastDayOfMonth,
 } from 'date-fns';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
 import { DateTimePicker } from '@/components/ui/datetime-picker';
 
@@ -71,38 +42,33 @@ export default function AgeCalculatorPage() {
   /* State to track the comparison date (defaults to current time) */
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
-  /* State to store the calculated breakdown of age in various units */
-  const [ageBreakdown, setAgeBreakdown] = useState<AgeBreakdown | null>(null);
-
   /**
-   * Effect hook to recalculate the age breakdown whenever
-   * birth date or current date changes.
+   * Recalculate the age breakdown whenever birth date or current date changes.
    */
-  useEffect(() => {
-    if (birthDate) {
-      const now = currentDate;
-      const breakdown: AgeBreakdown = {
-        /* Calculate years between dates */
-        years: differenceInYears(now, birthDate),
-        /* Calculate remaining months after years */
-        months: differenceInMonths(now, birthDate) % 12,
-        /* Calculate remaining days after months */
-        days: differenceInDays(now, birthDate) % 30,
-        /* Calculate remaining hours after days */
-        hours: differenceInHours(now, birthDate) % 24,
-        /* Calculate remaining minutes after hours */
-        minutes: differenceInMinutes(now, birthDate) % 60,
-        /* Calculate remaining seconds after minutes */
-        seconds: differenceInSeconds(now, birthDate) % 60,
+  const ageBreakdown = React.useMemo(() => {
+    if (!birthDate) return null;
 
-        /* Total calculations in single units */
-        totalDays: differenceInDays(now, birthDate),
-        totalHours: differenceInHours(now, birthDate),
-        totalMinutes: differenceInMinutes(now, birthDate),
-        totalSeconds: differenceInSeconds(now, birthDate),
-      };
-      setAgeBreakdown(breakdown);
-    }
+    const now = currentDate;
+    return {
+      /* Calculate years between dates */
+      years: differenceInYears(now, birthDate),
+      /* Calculate remaining months after years */
+      months: differenceInMonths(now, birthDate) % 12,
+      /* Calculate remaining days after months */
+      days: differenceInDays(now, birthDate) % 30,
+      /* Calculate remaining hours after days */
+      hours: differenceInHours(now, birthDate) % 24,
+      /* Calculate remaining minutes after hours */
+      minutes: differenceInMinutes(now, birthDate) % 60,
+      /* Calculate remaining seconds after minutes */
+      seconds: differenceInSeconds(now, birthDate) % 60,
+
+      /* Total calculations in single units */
+      totalDays: differenceInDays(now, birthDate),
+      totalHours: differenceInHours(now, birthDate),
+      totalMinutes: differenceInMinutes(now, birthDate),
+      totalSeconds: differenceInSeconds(now, birthDate),
+    } as AgeBreakdown;
   }, [birthDate, currentDate]);
 
   // Update current date every second to keep the "Live" feel if desired,

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
 import {
   User,
   Lock,
@@ -14,12 +15,9 @@ import {
   Monitor,
   Activity,
   AlertTriangle,
-  Mail,
-  Calendar,
   LogOut,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -82,7 +80,7 @@ export default function AccountPage() {
       } else {
         toast.success('Profile updated successfully.');
       }
-    } catch (err) {
+    } catch {
       toast.error('An unexpected error occurred.');
     }
   };
@@ -104,7 +102,7 @@ export default function AccountPage() {
         await authClient.signOut();
         window.location.href = '/';
       }
-    } catch (err) {
+    } catch {
       toast.error('An error occurred during account deletion.');
     } finally {
       setIsDeleting(false);
@@ -202,12 +200,13 @@ export default function AccountPage() {
               className="scroll-mt-24 space-y-8"
             >
               <div className="flex items-center gap-6">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden border">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden border relative">
                   {user?.image ? (
-                    <img
+                    <Image
                       src={user.image}
                       alt=""
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                   ) : (
                     <User className="w-6 h-6 text-muted-foreground" />
@@ -419,7 +418,7 @@ function NavBtn({
 }: {
   active: boolean;
   onClick: () => void;
-  icon: any;
+  icon: React.ElementType;
   label: string;
   danger?: boolean;
 }) {
