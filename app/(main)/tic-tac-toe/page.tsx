@@ -2,11 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  RotateCcw,
-  X,
-  Circle,
-} from 'lucide-react';
+import { RotateCcw, X, Circle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -63,39 +59,43 @@ export default function TicTacToePage() {
     }));
   }, []);
 
-  function minimax(squares: Player[], depth: number, isMaximizing: boolean): number {
-    const result = calculateWinner(squares);
-    if (result?.winner === 'O') return 10 - depth;
-    if (result?.winner === 'X') return depth - 10;
-    if (result?.winner === 'Draw') return 0;
-
-    if (isMaximizing) {
-      let bestScore = -Infinity;
-      for (let i = 0; i < 9; i++) {
-        if (!squares[i]) {
-          squares[i] = 'O';
-          const score = minimax(squares, depth + 1, false);
-          squares[i] = null;
-          bestScore = Math.max(score, bestScore);
-        }
-      }
-      return bestScore;
-    } else {
-      let bestScore = Infinity;
-      for (let i = 0; i < 9; i++) {
-        if (!squares[i]) {
-          squares[i] = 'X';
-          const score = minimax(squares, depth + 1, true);
-          squares[i] = null;
-          bestScore = Math.min(score, bestScore);
-        }
-      }
-      return bestScore;
-    }
-  }
-
   const makeAIMove = useCallback(
     (currentBoard: Player[]) => {
+      function minimax(
+        squares: Player[],
+        depth: number,
+        isMaximizing: boolean
+      ): number {
+        const result = calculateWinner(squares);
+        if (result?.winner === 'O') return 10 - depth;
+        if (result?.winner === 'X') return depth - 10;
+        if (result?.winner === 'Draw') return 0;
+
+        if (isMaximizing) {
+          let bestScore = -Infinity;
+          for (let i = 0; i < 9; i++) {
+            if (!squares[i]) {
+              squares[i] = 'O';
+              const score = minimax(squares, depth + 1, false);
+              squares[i] = null;
+              bestScore = Math.max(score, bestScore);
+            }
+          }
+          return bestScore;
+        } else {
+          let bestScore = Infinity;
+          for (let i = 0; i < 9; i++) {
+            if (!squares[i]) {
+              squares[i] = 'X';
+              const score = minimax(squares, depth + 1, true);
+              squares[i] = null;
+              bestScore = Math.min(score, bestScore);
+            }
+          }
+          return bestScore;
+        }
+      }
+
       let bestScore = -Infinity;
       let move = -1;
       for (let i = 0; i < 9; i++) {

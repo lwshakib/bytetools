@@ -1,12 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,7 +18,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/lib/auth-client';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';
@@ -430,7 +424,9 @@ export default function PasswordGeneratorPage() {
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-primary rounded-md"
                               onClick={() =>
-                                copyToClipboard(item.value || item.hashedValue || '')
+                                copyToClipboard(
+                                  item.value || item.hashedValue || ''
+                                )
                               }
                             >
                               <Copy className="w-3.5 h-3.5" />

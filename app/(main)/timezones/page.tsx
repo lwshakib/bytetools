@@ -10,10 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TimezonesPage() {
   /* Selected timezones managed by the global store */
-  const {
-    selectedTimezones,
-    setAllTimezones,
-  } = useTimezoneStore();
+  const { selectedTimezones, setAllTimezones } = useTimezoneStore();
 
   /* Authentication session data */
   const { data: session } = useSession();

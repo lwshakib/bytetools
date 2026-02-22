@@ -20,7 +20,7 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     // Send password reset email via Resend
-    sendResetPassword: async ({ user, url, token }) => {
+    sendResetPassword: async ({ user, url }) => {
       try {
         const { error } = await resend.emails.send({
           from: 'ByteTools <noreply@lwshakib.site>', // Replace with your verified domain in production
@@ -50,7 +50,7 @@ export const auth = betterAuth({
   // Enable email verification
   emailVerification: {
     sendOnSignUp: true,
-    sendVerificationEmail: async ({ user, url, token }, request) => {
+    sendVerificationEmail: async ({ user, url }) => {
       try {
         await resend.emails.send({
           from: 'ByteTools <noreply@lwshakib.site>',

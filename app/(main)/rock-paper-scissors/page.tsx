@@ -3,11 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  RotateCcw,
-  Zap,
-  Activity,
-} from 'lucide-react';
+import { RotateCcw, Zap, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 

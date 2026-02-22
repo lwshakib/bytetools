@@ -20,7 +20,6 @@ import {
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Logo } from '@/components/logo';
-import { AuthModal } from '@/components/auth-modal';
 import {
   Sidebar,
   SidebarContent,

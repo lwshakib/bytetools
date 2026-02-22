@@ -144,7 +144,7 @@ export function AuthModal() {
           </DialogTitle>
           <DialogDescription className="text-center">
             {view === 'forgot-password'
-              ? "Enter your email address and we&apos;ll send you a link to reset your password."
+              ? 'Enter your email address and we&apos;ll send you a link to reset your password.'
               : view === 'verification-sent'
                 ? 'Verify your email to access your account.'
                 : 'Sign in to sync your tools, tasks, and settings across all your devices.'}
@@ -222,8 +222,8 @@ export function AuthModal() {
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground bg-muted/50 p-3 rounded-lg border border-border/40">
-              Didn&apos;t receive an email? Check your spam folder or try signing in
-              again to resend it.
+              Didn&apos;t receive an email? Check your spam folder or try
+              signing in again to resend it.
             </p>
           </div>
         ) : (

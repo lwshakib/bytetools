@@ -45,13 +45,20 @@ export async function POST(req: Request) {
   await prisma.$transaction([
     prisma.routine.deleteMany({ where: { userId: session.user.id } }),
     prisma.routine.createMany({
-      data: items.map((it: any) => ({
-        userId: session.user.id,
-        text: it.text,
-        frequency: it.frequency,
-        selectedDays: it.selectedDays || [],
-        selectedDate: it.selectedDate || null,
-      })),
+      data: items.map(
+        (it: {
+          text: string;
+          frequency: string;
+          selectedDays?: number[];
+          selectedDate?: number | null;
+        }) => ({
+          userId: session.user.id,
+          text: it.text,
+          frequency: it.frequency,
+          selectedDays: it.selectedDays || [],
+          selectedDate: it.selectedDate || null,
+        })
+      ),
     }),
   ]);
 

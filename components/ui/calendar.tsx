@@ -162,7 +162,7 @@ function Calendar({
             <ChevronDownIcon className={cn('size-4', className)} {...props} />
           );
         },
-        Dropdown: ({ value, options, onChange, className, ...props }) => {
+        Dropdown: ({ value, options, onChange, className }) => {
           const selectedOption = options?.find(
             (option) => option.value === value
           );

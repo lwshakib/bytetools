@@ -4,13 +4,7 @@
  */
 'use client';
 
-import React, {
-  useMemo,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { Card } from '@/components/ui/card';
@@ -27,12 +21,7 @@ import { useTimezoneStore } from '@/hooks/use-timezone-store';
 import { cn } from '@/lib/utils';
 import { TimezoneSearchInline } from './timezone-search-inline';
 import { CityData } from '@/lib/timezone-data';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Clock from '@/components/clock';
 
 interface TimezoneCardProps {
@@ -105,7 +94,6 @@ export const TimezoneCard: React.FC<TimezoneCardProps> = ({
   const [liveNow, setLiveNow] = useState(new Date());
 
   const cardRef = useRef<HTMLDivElement>(null);
-  const sliderRef = useRef<HTMLInputElement>(null);
 
   // Update the live clock every second when the full-screen modal is open.
   useEffect(() => {

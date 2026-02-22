@@ -17,7 +17,6 @@ import {
   Wifi,
   CloudDownload,
   Trash2,
-  Package,
   Check,
   Camera,
 } from 'lucide-react';
@@ -25,7 +24,6 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from '@/lib/auth-client';
 
 type QRType = 'url' | 'text' | 'email' | 'wifi';
@@ -40,7 +38,7 @@ export default function QRCodePage() {
 
   /* Visual configuration for the QR code */
   const [fgColor, setFgColor] = useState('#000000');
-  const [size, setSize] = useState(256);
+  const [size] = useState(256);
   const [level, setLevel] = useState<'L' | 'M' | 'Q' | 'H'>('H');
 
   interface SavedQRCode {

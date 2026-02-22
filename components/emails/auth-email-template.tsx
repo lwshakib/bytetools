@@ -62,8 +62,8 @@ export function AuthEmailTemplate({ type, url }: AuthEmailTemplateProps) {
         }}
       >
         <p style={{ fontSize: '14px', color: '#6b7280', margin: '0' }}>
-          If the button doesn&apos;t work, you can copy and paste this link into your
-          browser:
+          If the button doesn&apos;t work, you can copy and paste this link into
+          your browser:
         </p>
         <p
           style={{

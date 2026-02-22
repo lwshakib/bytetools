@@ -177,45 +177,54 @@ export default function DailyPlannerPage() {
     return [baseDate];
   }, [baseDate, columnCount]);
 
-  const addTask = useCallback((
-    text: string,
-    dateKey: string,
-    category: Task['category'] = 'daily',
-    routineId: string | null = null
-  ) => {
-    const newTask: Task = {
-      id: Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
-      text,
-      completed: false,
-      date: dateKey,
-      category,
-      routineId,
-    };
-    setTasks((prev) => [...prev, newTask]);
-    if (!routineId) toast.success('Objective recorded');
-  }, []);
-
-  const toggleTask = useCallback((
-    id: string,
-    routineData?: { text: string; dateKey: string; routineId: string | null }
-  ) => {
-    if (id.startsWith('virtual-') && routineData) {
-      // Realize virtual routine task
+  const addTask = useCallback(
+    (
+      text: string,
+      dateKey: string,
+      category: Task['category'] = 'daily',
+      routineId: string | null = null
+    ) => {
       const newTask: Task = {
-        id: Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
-        text: routineData.text,
-        completed: true,
-        date: routineData.dateKey,
-        category: 'daily',
-        routineId: routineData.routineId,
+        id:
+          Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
+        text,
+        completed: false,
+        date: dateKey,
+        category,
+        routineId,
       };
       setTasks((prev) => [...prev, newTask]);
-      return;
-    }
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
-  }, []);
+      if (!routineId) toast.success('Objective recorded');
+    },
+    []
+  );
+
+  const toggleTask = useCallback(
+    (
+      id: string,
+      routineData?: { text: string; dateKey: string; routineId: string | null }
+    ) => {
+      if (id.startsWith('virtual-') && routineData) {
+        // Realize virtual routine task
+        const newTask: Task = {
+          id:
+            Date.now().toString(36) +
+            Math.random().toString(36).substring(2, 5),
+          text: routineData.text,
+          completed: true,
+          date: routineData.dateKey,
+          category: 'daily',
+          routineId: routineData.routineId,
+        };
+        setTasks((prev) => [...prev, newTask]);
+        return;
+      }
+      setTasks((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+      );
+    },
+    []
+  );
 
   const deleteTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
@@ -431,7 +440,10 @@ function DayColumn({
   routines: Routine[];
   pendingTasks: Task[];
   onAddTask: (text: string) => void;
-  onToggleTask: (id: string, routineData?: { text: string; dateKey: string; routineId: string | null }) => void;
+  onToggleTask: (
+    id: string,
+    routineData?: { text: string; dateKey: string; routineId: string | null }
+  ) => void;
   onDeleteTask: (id: string) => void;
   session: { user: { id: string } | null } | null;
 }) {
@@ -609,7 +621,10 @@ function TaskItem({
   isPending = false,
 }: {
   task: Task;
-  onToggle: (id: string, data?: { text: string; dateKey: string; routineId: string | null }) => void;
+  onToggle: (
+    id: string,
+    data?: { text: string; dateKey: string; routineId: string | null }
+  ) => void;
   onDelete: (id: string) => void;
   isPending?: boolean;
 }) {
@@ -884,7 +899,10 @@ function TaskDumpTab({
   showCompleted: boolean;
   setShowCompleted: (v: boolean) => void;
   onAddTask: (text: string) => void;
-  onToggleTask: (id: string, routineData?: { text: string; dateKey: string; routineId: string | null }) => void;
+  onToggleTask: (
+    id: string,
+    routineData?: { text: string; dateKey: string; routineId: string | null }
+  ) => void;
   onDeleteTask: (id: string) => void;
   session: { user: { id: string } | null } | null;
 }) {

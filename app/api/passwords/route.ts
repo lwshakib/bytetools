@@ -33,7 +33,7 @@ export async function GET() {
         ...p,
         value: decrypt(p.hashedValue),
       };
-    } catch (e) {
+    } catch {
       // If decryption fails, provide a redacted placeholder to avoid crashing the UI.
       return {
         ...p,

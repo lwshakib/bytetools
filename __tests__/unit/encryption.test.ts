@@ -6,7 +6,7 @@ describe('Encryption Utilities', () => {
   it('should encrypt and decrypt correctly', () => {
     const encrypted = encrypt(testMessage);
     expect(encrypted).not.toBe(testMessage);
-    
+
     const decrypted = decrypt(encrypted);
     expect(decrypted).toBe(testMessage);
   });
@@ -23,7 +23,7 @@ describe('Encryption Utilities', () => {
     // Flip a bit in the encrypted data
     tampered[tampered.length - 1] ^= 0x01;
     const tamperedBase64 = tampered.toString('base64');
-    
+
     expect(() => decrypt(tamperedBase64)).toThrow();
   });
 });

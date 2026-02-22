@@ -79,7 +79,7 @@ export default function TimerPage() {
       try {
         const parsed = JSON.parse(saved);
         Promise.resolve().then(() => setCustomPresets(parsed));
-      } catch (_e) {}
+      } catch {}
     }
   }, []);
 
@@ -88,7 +88,7 @@ export default function TimerPage() {
     setIsEditing(true);
     try {
       new Audio('/notification.mp3').play().catch(() => {});
-    } catch (_e) {}
+    } catch {}
     toast.success('Temporal count completed.');
   }, []);
 

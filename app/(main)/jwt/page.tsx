@@ -1,12 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,8 +42,14 @@ export default function JWTToolPage() {
   const [tokenToDecode, setTokenToDecode] = useState('');
 
   /* Structured data from the decoded header/payload */
-  const [decodedHeader, setDecodedHeader] = useState<Record<string, unknown> | null>(null);
-  const [decodedPayload, setDecodedPayload] = useState<Record<string, unknown> | null>(null);
+  const [decodedHeader, setDecodedHeader] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
+  const [decodedPayload, setDecodedPayload] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
 
   /* Validation status of the JWT's signature */
   const [isVerified, setIsVerified] = useState<boolean | null>(null);

@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   await prisma.$transaction([
     prisma.timerPreset.deleteMany({ where: { userId: session.user.id } }),
     prisma.timerPreset.createMany({
-      data: items.map((it: any) => ({
+      data: items.map((it: { name: string; duration: number }) => ({
         userId: session.user.id,
         name: it.name,
         duration: it.duration,

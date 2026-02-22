@@ -2,11 +2,7 @@
 
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
-import {
-  Calendar as CalendarIcon,
-  Clock,
-  Activity,
-} from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Activity } from 'lucide-react';
 import {
   differenceInYears,
   differenceInMonths,

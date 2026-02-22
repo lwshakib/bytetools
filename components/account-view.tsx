@@ -26,7 +26,6 @@ import {
   ArrowLeft,
   User,
   Shield,
-  HardDrive,
   Trash2,
   Smartphone,
   Monitor,
@@ -41,7 +40,15 @@ export function AccountView() {
   const { data: session } = useSession();
   const [name, setName] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
-  const [activeSessions, setActiveSessions] = useState<any[]>([]);
+  const [activeSessions, setActiveSessions] = useState<
+    {
+      id: string;
+      userAgent?: string | null;
+      ipAddress?: string | null;
+      createdAt: Date | string;
+      token: string;
+    }[]
+  >([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
 
   useEffect(() => {
@@ -69,7 +76,7 @@ export function AccountView() {
         name: name,
       });
       toast.success('Profile updated successfully');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update profile');
     } finally {
       setIsUpdating(false);
@@ -86,7 +93,7 @@ export function AccountView() {
         await authClient.deleteUser();
         toast.success('Account deleted');
         window.location.href = '/';
-      } catch (error) {
+      } catch {
         toast.error('Failed to delete account');
       }
     }
@@ -97,7 +104,7 @@ export function AccountView() {
       await authClient.revokeSession({ token });
       toast.success('Session revoked');
       fetchSessions();
-    } catch (error) {
+    } catch {
       toast.error('Failed to revoke session');
     }
   };
