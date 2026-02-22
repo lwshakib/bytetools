@@ -35,12 +35,14 @@ Welcome to **Bytetools**! A modern, premium utility suite built with [Next.js](h
 ### Installation
 
 1.  **Clone the repository:**
+
     ```bash
     git clone https://github.com/lwshakib/bytetools.git
     cd bytetools
     ```
 
 2.  **Install dependencies:**
+
     ```bash
     bun install
     ```
@@ -78,17 +80,17 @@ graph TD
     Root --> Hooks[hooks]
     Root --> Lib[lib]
     Root --> Prisma[prisma]
-    
+
     App --> Auth[(auth) - Auth Routes]
     App --> Main[(main) - Tool Pages]
     App --> API[api - Auth & Tool API]
-    
+
     Components --> AuthComp[auth-modal.tsx]
     Components --> EmailComp[emails/auth-email-template.tsx]
     Components --> UI[ui/ - shadcn components]
-    
+
     Hooks --> AuthHook[use-auth-modal.ts]
-    
+
     Lib --> AuthLib[auth.ts - Better Auth Config]
     Lib --> ClientLib[auth-client.ts]
 ```
@@ -102,4 +104,5 @@ We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) and 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-*Built with ❤️ by [lwshakib](https://github.com/lwshakib)*
+
+_Built with ❤️ by [lwshakib](https://github.com/lwshakib)_

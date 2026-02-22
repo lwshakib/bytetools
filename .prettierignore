@@ -1,0 +1,10 @@
+.next
+node_modules
+build
+dist
+public
+coverage
+bun.lock
+bun.lockb
+.env.*
+!.env.example

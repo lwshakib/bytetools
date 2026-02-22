@@ -1,35 +1,42 @@
-"use client";
+'use client';
 
-import { useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { Logo } from "@/components/logo";
+import { useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Lock, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Logo } from '@/components/logo';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get("token");
-  
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const token = searchParams.get('token');
+
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error('Passwords do not match');
       return;
     }
 
     if (!token) {
-      toast.error("Invalid reset token");
+      toast.error('Invalid reset token');
       return;
     }
 
@@ -41,13 +48,13 @@ function ResetPasswordForm() {
       });
 
       if (error) {
-        toast.error(error.message || "Failed to reset password");
+        toast.error(error.message || 'Failed to reset password');
       } else {
-        toast.success("Password reset successfully! You can now sign in.");
-        router.push("/");
+        toast.success('Password reset successfully! You can now sign in.');
+        router.push('/');
       }
     } catch (err) {
-      toast.error("Something went wrong");
+      toast.error('Something went wrong');
     } finally {
       setIsLoading(false);
     }
@@ -59,11 +66,14 @@ function ResetPasswordForm() {
         <CardHeader>
           <CardTitle className="text-destructive">Invalid Link</CardTitle>
           <CardDescription>
-            The password reset link is invalid or has expired. Please request a new one.
+            The password reset link is invalid or has expired. Please request a
+            new one.
           </CardDescription>
         </CardHeader>
         <CardFooter>
-          <Button className="w-full" onClick={() => router.push("/")}>Back to Home</Button>
+          <Button className="w-full" onClick={() => router.push('/')}>
+            Back to Home
+          </Button>
         </CardFooter>
       </Card>
     );
@@ -111,7 +121,9 @@ function ResetPasswordForm() {
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full mt-8" disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
             Reset Password
           </Button>
         </CardFooter>
@@ -123,16 +135,18 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-muted/30">
-        <div className="mb-8">
-            <Logo iconSize={32} textSize="1.5rem" />
-        </div>
-        <Suspense fallback={
-            <Card className="w-full max-w-md h-64 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </Card>
-        }>
-            <ResetPasswordForm />
-        </Suspense>
+      <div className="mb-8">
+        <Logo iconSize={32} textSize="1.5rem" />
+      </div>
+      <Suspense
+        fallback={
+          <Card className="w-full max-w-md h-64 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </Card>
+        }
+      >
+        <ResetPasswordForm />
+      </Suspense>
     </div>
   );
 }

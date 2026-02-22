@@ -1,9 +1,6 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { MainHeader } from "@/components/main-header"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { AppSidebar } from '@/components/app-sidebar';
+import { MainHeader } from '@/components/main-header';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 /**
  * Main application layout that wraps all routes within the (main) group.
@@ -15,17 +12,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       {/* AppSidebar: The main navigation component on the left */}
       <AppSidebar />
-      
+
       {/* SidebarInset: Container for the main content that shifts when sidebar is toggled */}
       <SidebarInset>
         {/* MainHeader: Top navigation/branding bar */}
         <MainHeader />
-        
+
         {/* Main content area where individual tool pages are rendered */}
-        <div className="flex flex-1 flex-col p-2 md:p-6 lg:p-8">
-          {children}
-        </div>
+        <div className="flex flex-1 flex-col p-2 md:p-6 lg:p-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

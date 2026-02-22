@@ -1,4 +1,4 @@
-import React, { SVGProps } from "react";
+import React, { SVGProps } from 'react';
 
 export interface LogoIconProps extends SVGProps<SVGSVGElement> {
   className?: string;
@@ -8,7 +8,7 @@ export interface LogoIconProps extends SVGProps<SVGSVGElement> {
 
 export const LogoIcon = ({
   className,
-  fill = "currentColor",
+  fill = 'currentColor',
   size = 24,
   ...rest
 }: LogoIconProps): React.ReactElement => {
@@ -37,9 +37,9 @@ export interface LogoProps {
 }
 
 export const Logo = ({
-  className = "",
+  className = '',
   iconSize = 34,
-  textSize = "1.5rem",
+  textSize = '1.5rem',
 }: LogoProps): React.ReactElement => {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -48,7 +48,7 @@ export const Logo = ({
         style={{
           fontSize: textSize,
           fontWeight: 600,
-          letterSpacing: "-0.01em",
+          letterSpacing: '-0.01em',
         }}
         className="text-foreground truncate group-data-[collapsible=icon]:hidden"
       >

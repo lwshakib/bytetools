@@ -1,53 +1,54 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "ByteTools - Essential Developer Utilities & Tools",
-  description: "A comprehensive suite of developer tools including URL shortening, QR code generation, and more to streamline your workflow.",
-   icons: {
+  title: 'ByteTools - Essential Developer Utilities & Tools',
+  description:
+    'A comprehensive suite of developer tools including URL shortening, QR code generation, and more to streamline your workflow.',
+  icons: {
     icon: [
       {
-        url: "/favicon_io/favicon-16x16.png",
-        sizes: "16x16",
-        type: "image/png",
+        url: '/favicon_io/favicon-16x16.png',
+        sizes: '16x16',
+        type: 'image/png',
       },
       {
-        url: "/favicon_io/favicon-32x32.png",
-        sizes: "32x32",
-        type: "image/png",
+        url: '/favicon_io/favicon-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
       },
-      { url: "/favicon_io/favicon.ico", sizes: "any", type: "image/x-icon" },
+      { url: '/favicon_io/favicon.ico', sizes: 'any', type: 'image/x-icon' },
       {
-        url: "/favicon_io/android-chrome-192x192.png",
-        sizes: "192x192",
-        type: "image/png",
+        url: '/favicon_io/android-chrome-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
       },
       {
-        url: "/favicon_io/android-chrome-512x512.png",
-        sizes: "512x512",
-        type: "image/png",
+        url: '/favicon_io/android-chrome-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
       },
     ],
-    apple: "/favicon_io/apple-touch-icon.png",
+    apple: '/favicon_io/apple-touch-icon.png',
   },
-  manifest: "/favicon_io/site.webmanifest",
+  manifest: '/favicon_io/site.webmanifest',
 };
 
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { AuthModal } from "@/components/auth-modal";
-import { VerificationListener } from "@/components/verification-listener";
+import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
+import { AuthModal } from '@/components/auth-modal';
+import { VerificationListener } from '@/components/verification-listener';
 
 export default function RootLayout({
   children,

@@ -2,82 +2,82 @@
  * API route for persisting and managing saved QR codes.
  * Allows users to store their custom-generated QR codes with specific styling.
  */
-import { auth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { headers } from "next/headers";
+import { auth } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 
 /**
  * Retrieves all saved QR codes for the authenticated user.
  */
 export async function GET() {
-    const session = await auth.api.getSession({
-        headers: await headers()
-    });
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-    const qrCodes = await prisma.savedQrCode.findMany({
-        where: { userId: session.user.id },
-        orderBy: { createdAt: 'desc' }
-    });
+  const qrCodes = await prisma.savedQrCode.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: 'desc' },
+  });
 
-    return NextResponse.json(qrCodes);
+  return NextResponse.json(qrCodes);
 }
 
 /**
  * Saves a new QR code configuration to the database.
  */
 export async function POST(req: Request) {
-    const session = await auth.api.getSession({
-        headers: await headers()
-    });
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-    const { name, content, fgColor, level } = await req.json();
+  const { name, content, fgColor, level } = await req.json();
 
-    if (!content) {
-        return NextResponse.json({ error: "Content is required" }, { status: 400 });
-    }
+  if (!content) {
+    return NextResponse.json({ error: 'Content is required' }, { status: 400 });
+  }
 
-    const savedQr = await prisma.savedQrCode.create({
-        data: {
-            userId: session.user.id,
-            name: name || "My QR Code",
-            content,
-            fgColor: fgColor || "#ffffff", // Default to white foreground if not provided
-            level: level || "H" // Default to High error correction
-        }
-    });
+  const savedQr = await prisma.savedQrCode.create({
+    data: {
+      userId: session.user.id,
+      name: name || 'My QR Code',
+      content,
+      fgColor: fgColor || '#ffffff', // Default to white foreground if not provided
+      level: level || 'H', // Default to High error correction
+    },
+  });
 
-    return NextResponse.json(savedQr);
+  return NextResponse.json(savedQr);
 }
 
 /**
  * Deletes a saved QR code configuration.
  */
 export async function DELETE(req: Request) {
-    const session = await auth.api.getSession({
-        headers: await headers()
-    });
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-    const { id } = await req.json();
+  const { id } = await req.json();
 
-    await prisma.savedQrCode.delete({
-        where: { 
-            id,
-            userId: session.user.id 
-        }
-    });
+  await prisma.savedQrCode.delete({
+    where: {
+      id,
+      userId: session.user.id,
+    },
+  });
 
-    return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true });
 }

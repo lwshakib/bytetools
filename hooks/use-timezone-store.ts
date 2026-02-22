@@ -32,16 +32,17 @@ interface TimezoneStore {
  */
 const getLocalTimezoneItem = (): TimezoneItem => {
   const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const match = cities.find(c => c.timezone === localTz);
-  
+  const match = cities.find((c) => c.timezone === localTz);
+
   // Extract city from timezone if match not found (e.g. "Asia/Dhaka" -> "Dhaka")
-  const cityFromTz = localTz.split('/').pop()?.replace(/_/g, ' ') || 'Unknown Location';
+  const cityFromTz =
+    localTz.split('/').pop()?.replace(/_/g, ' ') || 'Unknown Location';
 
   return {
     id: 'local',
     city: match ? match.city : cityFromTz,
     country: match ? match.country : '',
-    timezone: localTz
+    timezone: localTz,
   };
 };
 
@@ -51,24 +52,32 @@ export const useTimezoneStore = create<TimezoneStore>()((set) => ({
   baseTime: Date.now(),
   timeOffset: 0,
   selectedId: 'local',
-  
-  addTimezone: (item) => set((state) => ({
-    selectedTimezones: [...state.selectedTimezones, item],
-    selectedId: item.id
-  })),
-  
-  updateTimezone: (id, newItem) => set((state) => ({
-    selectedTimezones: state.selectedTimezones.map((tz) => 
-      tz.id === id ? { ...tz, ...newItem } : tz
-    )
-  })),
-  
-  removeTimezone: (id) => set((state) => ({
-    selectedTimezones: state.selectedTimezones.filter((t) => t.id !== id),
-    // Ensure another timezone is selected if the currently selected one is removed.
-    selectedId: state.selectedId === id ? (state.selectedTimezones.length > 1 ? state.selectedTimezones[0].id : null) : state.selectedId
-  })),
-  
+
+  addTimezone: (item) =>
+    set((state) => ({
+      selectedTimezones: [...state.selectedTimezones, item],
+      selectedId: item.id,
+    })),
+
+  updateTimezone: (id, newItem) =>
+    set((state) => ({
+      selectedTimezones: state.selectedTimezones.map((tz) =>
+        tz.id === id ? { ...tz, ...newItem } : tz
+      ),
+    })),
+
+  removeTimezone: (id) =>
+    set((state) => ({
+      selectedTimezones: state.selectedTimezones.filter((t) => t.id !== id),
+      // Ensure another timezone is selected if the currently selected one is removed.
+      selectedId:
+        state.selectedId === id
+          ? state.selectedTimezones.length > 1
+            ? state.selectedTimezones[0].id
+            : null
+          : state.selectedId,
+    })),
+
   setBaseTime: (time) => set({ baseTime: time }),
   setTimeOffset: (offset) => set({ timeOffset: offset }),
   resetTime: () => set({ baseTime: Date.now(), timeOffset: 0 }),

@@ -1,31 +1,31 @@
-"use client";
+'use client';
 
-import { useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { toast } from "sonner";
-import { useAuthModal } from "@/hooks/use-auth-modal";
+import { useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
+import { useAuthModal } from '@/hooks/use-auth-modal';
 
 function SearchParamsHandler() {
   const searchParams = useSearchParams();
   const { onOpen } = useAuthModal();
 
   useEffect(() => {
-    const verified = searchParams.get("verified");
-    
-    if (verified === "true") {
+    const verified = searchParams.get('verified');
+
+    if (verified === 'true') {
       // 1. Show success toast
-      toast.success("Email verified successfully! You can now sign in.", {
+      toast.success('Email verified successfully! You can now sign in.', {
         duration: 5000,
       });
 
       // 2. Clear the 'verified' param so it doesn't trigger again on refresh
       const url = new URL(window.location.href);
-      url.searchParams.delete("verified");
+      url.searchParams.delete('verified');
       const newUrl = url.pathname + url.search;
-      window.history.replaceState({}, "", newUrl);
+      window.history.replaceState({}, '', newUrl);
 
       // 3. Open the login modal
-      onOpen("login");
+      onOpen('login');
     }
   }, [searchParams, onOpen]);
 

@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { 
-  User, 
-  Lock, 
-  Shield, 
-  Trash2, 
-  Smartphone, 
+import {
+  User,
+  Lock,
+  Shield,
+  Trash2,
+  Smartphone,
   Monitor,
   Activity,
   AlertTriangle,
   Mail,
   Calendar,
-  LogOut
+  LogOut,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -31,21 +31,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { authClient, useSession } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+} from '@/components/ui/alert-dialog';
+import { authClient, useSession } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 
 export default function AccountPage() {
   const router = useRouter();
   const { data: sessionData, isPending } = useSession();
-  const [activeNav, setActiveNav] = useState("profile");
+  const [activeNav, setActiveNav] = useState('profile');
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Route protection
   useEffect(() => {
     if (!isPending && !sessionData) {
-      router.push("/");
+      router.push('/');
     }
   }, [sessionData, isPending, router]);
 
@@ -60,48 +60,52 @@ export default function AccountPage() {
       profile: profileRef,
       security: securityRef,
       sessions: sessionsRef,
-      danger: dangerRef
+      danger: dangerRef,
     };
-    refs[section]?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    refs[section]?.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    const nameInput = document.getElementById("display-name") as HTMLInputElement;
+    const nameInput = document.getElementById(
+      'display-name'
+    ) as HTMLInputElement;
     if (!nameInput) return;
 
     try {
       const { error } = await authClient.updateUser({ name: nameInput.value });
       if (error) {
-        toast.error(error.message || "Failed to update profile");
+        toast.error(error.message || 'Failed to update profile');
       } else {
-        toast.success("Profile updated successfully.");
+        toast.success('Profile updated successfully.');
       }
     } catch (err) {
-      toast.error("An unexpected error occurred.");
+      toast.error('An unexpected error occurred.');
     }
   };
-
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch("/api/account/delete", {
-        method: "DELETE",
+      const response = await fetch('/api/account/delete', {
+        method: 'DELETE',
       });
-      
+
       const result = await response.json();
 
       if (!response.ok || result.error) {
-        toast.error(result.error || "Failed to delete account");
+        toast.error(result.error || 'Failed to delete account');
       } else {
-        toast.success("Account deleted successfully");
+        toast.success('Account deleted successfully');
         // Sign out on the client side to clear local state
         await authClient.signOut();
-        window.location.href = "/";
+        window.location.href = '/';
       }
     } catch (err) {
-      toast.error("An error occurred during account deletion.");
+      toast.error('An error occurred during account deletion.');
     } finally {
       setIsDeleting(false);
     }
@@ -120,7 +124,7 @@ export default function AccountPage() {
 
   const handleSignOut = async () => {
     await authClient.signOut();
-    window.location.href = "/";
+    window.location.href = '/';
   };
 
   return (
@@ -135,9 +139,24 @@ export default function AccountPage() {
 
         <div className="flex flex-col lg:flex-row gap-10 sm:gap-16">
           <aside className="w-full lg:w-48 lg:sticky lg:top-24 space-y-1">
-            <NavBtn active={activeNav === "profile"} onClick={() => scrollToSection("profile")} icon={User} label="Profile" />
-            <NavBtn active={activeNav === "security"} onClick={() => scrollToSection("security")} icon={Lock} label="Security" />
-            <NavBtn active={activeNav === "sessions"} onClick={() => scrollToSection("sessions")} icon={Shield} label="Sessions" />
+            <NavBtn
+              active={activeNav === 'profile'}
+              onClick={() => scrollToSection('profile')}
+              icon={User}
+              label="Profile"
+            />
+            <NavBtn
+              active={activeNav === 'security'}
+              onClick={() => scrollToSection('security')}
+              icon={Lock}
+              label="Security"
+            />
+            <NavBtn
+              active={activeNav === 'sessions'}
+              onClick={() => scrollToSection('sessions')}
+              icon={Shield}
+              label="Sessions"
+            />
             <div className="pt-4 mt-4 border-t border-border space-y-1">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -154,81 +173,156 @@ export default function AccountPage() {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleSignOut} className="rounded-xl">Sign Out</AlertDialogAction>
+                    <AlertDialogCancel className="rounded-xl">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleSignOut}
+                      className="rounded-xl"
+                    >
+                      Sign Out
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <NavBtn active={activeNav === "danger"} onClick={() => scrollToSection("danger")} icon={Trash2} label="Delete Account" danger />
+              <NavBtn
+                active={activeNav === 'danger'}
+                onClick={() => scrollToSection('danger')}
+                icon={Trash2}
+                label="Delete Account"
+                danger
+              />
             </div>
           </aside>
 
           <main className="flex-1 space-y-20">
-            <section ref={profileRef} id="profile" className="scroll-mt-24 space-y-8">
+            <section
+              ref={profileRef}
+              id="profile"
+              className="scroll-mt-24 space-y-8"
+            >
               <div className="flex items-center gap-6">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden border">
                   {user?.image ? (
-                    <img src={user.image} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={user.image}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <User className="w-6 h-6 text-muted-foreground" />
                   )}
                 </div>
                 <div>
-                  <h2 className="text-lg font-medium">{user?.name || "User"}</h2>
+                  <h2 className="text-lg font-medium">
+                    {user?.name || 'User'}
+                  </h2>
                   <p className="text-xs text-muted-foreground">
-                    Joined in {user?.createdAt ? format(new Date(user.createdAt), "MMMM yyyy") : "2024"}
+                    Joined in{' '}
+                    {user?.createdAt
+                      ? format(new Date(user.createdAt), 'MMMM yyyy')
+                      : '2024'}
                   </p>
                 </div>
               </div>
 
               <div className="grid gap-6 max-w-xl">
                 <div className="space-y-2">
-                  <Label htmlFor="display-name" className="text-xs text-muted-foreground">Full Name</Label>
-                  <Input id="display-name" defaultValue={user?.name || ""} className="max-w-md" />
+                  <Label
+                    htmlFor="display-name"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Full Name
+                  </Label>
+                  <Input
+                    id="display-name"
+                    defaultValue={user?.name || ''}
+                    className="max-w-md"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Email Address</Label>
-                  <Input value={user?.email || ""} disabled className="max-w-md opacity-60" />
+                  <Label className="text-xs text-muted-foreground">
+                    Email Address
+                  </Label>
+                  <Input
+                    value={user?.email || ''}
+                    disabled
+                    className="max-w-md opacity-60"
+                  />
                 </div>
-                <Button onClick={handleUpdateProfile} variant="default" className="w-fit">Save Changes</Button>
+                <Button
+                  onClick={handleUpdateProfile}
+                  variant="default"
+                  className="w-fit"
+                >
+                  Save Changes
+                </Button>
               </div>
             </section>
 
             <Separator />
 
-            <section ref={securityRef} id="security" className="scroll-mt-24 space-y-8">
-               <div>
+            <section
+              ref={securityRef}
+              id="security"
+              className="scroll-mt-24 space-y-8"
+            >
+              <div>
                 <h2 className="text-lg font-medium">Security</h2>
-                <p className="text-sm text-muted-foreground mt-1">Control your password and authentication settings.</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Control your password and authentication settings.
+                </p>
               </div>
 
               <div className="grid gap-6 max-w-xl">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">New Password</Label>
-                    <Input type="password" placeholder="••••••••" className="max-w-md" />
+                    <Label className="text-xs text-muted-foreground">
+                      New Password
+                    </Label>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      className="max-w-md"
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Confirm Password</Label>
-                    <Input type="password" placeholder="••••••••" className="max-w-md" />
+                    <Label className="text-xs text-muted-foreground">
+                      Confirm Password
+                    </Label>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      className="max-w-md"
+                    />
                   </div>
-                  <Button variant="outline" className="w-fit">Update Password</Button>
+                  <Button variant="outline" className="w-fit">
+                    Update Password
+                  </Button>
                 </div>
               </div>
             </section>
 
             <Separator />
 
-            <section ref={sessionsRef} id="sessions" className="scroll-mt-24 space-y-8">
+            <section
+              ref={sessionsRef}
+              id="sessions"
+              className="scroll-mt-24 space-y-8"
+            >
               <div>
                 <h2 className="text-lg font-medium">Active Sessions</h2>
-                <p className="text-sm text-muted-foreground mt-1">Devices currently connected to your account.</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Devices currently connected to your account.
+                </p>
               </div>
 
               <div className="border border-border/60 rounded-xl overflow-hidden divide-y divide-border/60">
                 <div className="p-4 flex items-center justify-between bg-muted/30">
                   <div className="flex items-center gap-4">
-                    {currentSession?.userAgent?.toLowerCase().includes("mobile") ? (
+                    {currentSession?.userAgent
+                      ?.toLowerCase()
+                      .includes('mobile') ? (
                       <Smartphone className="w-5 h-5 text-muted-foreground" />
                     ) : (
                       <Monitor className="w-5 h-5 text-muted-foreground" />
@@ -236,12 +330,15 @@ export default function AccountPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium">
-                          {currentSession?.userAgent || "Current Session"}
+                          {currentSession?.userAgent || 'Current Session'}
                         </p>
-                        <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[9px] font-bold rounded uppercase">Active</span>
+                        <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[9px] font-bold rounded uppercase">
+                          Active
+                        </span>
                       </div>
                       <p className="text-[11px] text-muted-foreground leading-none mt-1">
-                        {currentSession?.ipAddress || "Active Connection"} • Current Device
+                        {currentSession?.ipAddress || 'Active Connection'} •
+                        Current Device
                       </p>
                     </div>
                   </div>
@@ -251,7 +348,11 @@ export default function AccountPage() {
 
             <Separator />
 
-            <section ref={dangerRef} id="danger" className="scroll-mt-24 pt-8 border-t border-border">
+            <section
+              ref={dangerRef}
+              id="danger"
+              className="scroll-mt-24 pt-8 border-t border-border"
+            >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 border border-destructive/20 rounded-xl bg-destructive/[0.02]">
                 <div className="space-y-1.5">
                   <h2 className="text-lg font-semibold text-destructive flex items-center gap-2">
@@ -259,26 +360,33 @@ export default function AccountPage() {
                     Delete Account
                   </h2>
                   <p className="text-sm text-muted-foreground max-w-md">
-                    Permanently delete your profile, tools, and all associated data. This action is irreversible.
+                    Permanently delete your profile, tools, and all associated
+                    data. This action is irreversible.
                   </p>
                 </div>
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="px-8 shadow-sm">Delete Account</Button>
+                    <Button variant="destructive" className="px-8 shadow-sm">
+                      Delete Account
+                    </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="rounded-2xl">
                     <AlertDialogHeader className="space-y-3">
-                      <AlertDialogTitle className="text-xl">Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogTitle className="text-xl">
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
                       <AlertDialogDescription className="text-base text-muted-foreground">
-                        This will permanently remove your account and all data from our servers. 
-                        This action cannot be undone.
+                        This will permanently remove your account and all data
+                        from our servers. This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-4 gap-2">
-                      <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleDeleteAccount} 
+                      <AlertDialogCancel className="rounded-xl">
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteAccount}
                         className="bg-destructive hover:bg-destructive/90 rounded-xl px-6"
                       >
                         {isDeleting ? (
@@ -286,7 +394,9 @@ export default function AccountPage() {
                             <Activity className="w-4 h-4 animate-spin" />
                             Deleting...
                           </span>
-                        ) : "Permanently Delete"}
+                        ) : (
+                          'Permanently Delete'
+                        )}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -300,21 +410,29 @@ export default function AccountPage() {
   );
 }
 
-function NavBtn({ active, onClick, icon: Icon, label, danger = false }: { 
-  active: boolean, 
-  onClick: () => void, 
-  icon: any, 
-  label: string,
-  danger?: boolean
+function NavBtn({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+  danger = false,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: any;
+  label: string;
+  danger?: boolean;
 }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors",
-        active 
-          ? (danger ? "bg-red-50 text-red-600 font-medium" : "bg-muted text-foreground font-medium")
-          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+        'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors',
+        active
+          ? danger
+            ? 'bg-red-50 text-red-600 font-medium'
+            : 'bg-muted text-foreground font-medium'
+          : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
       )}
     >
       <Icon className="w-4 h-4" />
