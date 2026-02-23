@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 // Define a test suite specifically for checking the functionality of the 'cn' utility
 // The 'describe' block groups related test assertions together logically
 describe('cn utility', () => {
-  
   // Define a test case to check basic string concatenation functionality
   it('combines classes', () => {
     // Call the cn utility with two basic string arguments: 'class1' and 'class2'
