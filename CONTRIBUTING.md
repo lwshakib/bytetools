@@ -56,8 +56,60 @@ An effective bug report helps us fix issues faster.
 
 Unsure where to begin contributing to Bytetools? You can start by looking through these `good-first-issue` and `help-wanted` issues:
 
-- [Good first issues](https://github.com/lwshakib/bytetools/labels/good%20first%20issue) - issues which should only require a few lines of code, and a test or two.
+- [Good first issues](https://github.com/lwshakib/bytetools/labels/good%20first%20issue) - issues which should only require a few lines of code.
 - [Help wanted issues](https://github.com/lwshakib/bytetools/labels/help%20wanted) - issues which should be a bit more involved than `good first issue`s.
+
+### Development Workflow
+
+Here are the step-by-step instructions to get your development environment set up and make your first contribution:
+
+1. **Fork the Repository**
+   Click the "Fork" button at the top right of this page to create a copy of this repository in your GitHub account.
+
+2. **Clone your Fork**
+   Clone the repository to your local machine:
+   ```bash
+   git clone https://github.com/<your-username>/bytetools.git
+   cd bytetools
+   ```
+
+3. **Set up Upstream Remote**
+   Add the main repository as an upstream remote so you can pull the latest changes:
+   ```bash
+   git remote add upstream https://github.com/lwshakib/bytetools.git
+   ```
+
+4. **Keep your Fork in Sync**
+   Before starting any work, ensure your local `main` branch is up to date with the original repository:
+   ```bash
+   git checkout main
+   git fetch upstream
+   git merge upstream/main
+   ```
+
+5. **Create a Branch**
+   Always create a new branch for your changes:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+   *Tip: Use descriptive names like `feature/add-login` or `fix/header-bug`.*
+
+6. **Make Changes and Commit**
+   Make your changes locally. When you are ready to commit:
+   ```bash
+   git add .
+   git commit -m "feat: your descriptive commit message"
+   ```
+   *Please follow our [Git Commit Messages](#git-commit-messages) guidelines.*
+
+7. **Push to your Fork**
+   Push your new branch to your forked repository:
+   ```bash
+   git push -u origin feature/your-feature-name
+   ```
+
+8. **Create a Pull Request**
+   Go to the original Bytetools repository on GitHub. You should see a prompt to create a Pull Request from your newly pushed branch. Provide a clear description of your changes.
 
 ### Pull Requests
 
@@ -93,7 +145,6 @@ Please follow these steps to have your contribution considered by the maintainer
   - :bug: `:bug:` when fixing a bug
   - :fire: `:fire:` when removing code or files
   - :green_heart: `:green_heart:` when fixing the CI build
-  - :white_check_mark: `:white_check_mark:` when adding tests
   - :lock: `:lock:` when dealing with security
   - :arrow_up: `:arrow_up:` when upgrading dependencies
   - :arrow_down: `:arrow_down:` when downgrading dependencies
