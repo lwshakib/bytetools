@@ -20,14 +20,14 @@ import { useAuthModal } from '@/hooks/use-auth-modal';
 
 export function AuthModal() {
   const { isOpen, view, onClose, setView } = useAuthModal();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<'signin' | 'signup' | 'forgot-password' | 'google' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsLoading('signin');
     try {
       await signIn.email(
         {
@@ -53,13 +53,13 @@ export function AuthModal() {
     } catch {
       toast.error('Something went wrong');
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsLoading('signup');
     try {
       await signUp.email(
         {
@@ -84,13 +84,13 @@ export function AuthModal() {
     } catch {
       toast.error('Something went wrong');
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsLoading('forgot-password');
     try {
       const { error } = await authClient.requestPasswordReset({
         email,
@@ -105,12 +105,12 @@ export function AuthModal() {
     } catch {
       toast.error('Something went wrong');
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
+    setIsLoading('google');
     try {
       await signIn.social({
         provider: 'google',
@@ -118,7 +118,7 @@ export function AuthModal() {
       });
     } catch {
       toast.error('Failed to sign in with Google');
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
@@ -168,8 +168,8 @@ export function AuthModal() {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
+            <Button type="submit" className="w-full" disabled={isLoading !== null}>
+              {isLoading === 'forgot-password' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
               Send Reset Link
@@ -179,7 +179,7 @@ export function AuthModal() {
               variant="ghost"
               className="w-full"
               onClick={() => setView('login')}
-              disabled={isLoading}
+              disabled={isLoading !== null}
             >
               Back to Login
             </Button>
@@ -290,9 +290,9 @@ export function AuthModal() {
                 <Button
                   type="submit"
                   className="w-full h-11 rounded-xl shadow-lg shadow-primary/10"
-                  disabled={isLoading}
+                  disabled={isLoading !== null}
                 >
-                  {isLoading ? (
+                  {isLoading === 'signin' ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
                   Sign In
@@ -348,9 +348,9 @@ export function AuthModal() {
                 <Button
                   type="submit"
                   className="w-full h-11 rounded-xl shadow-lg shadow-primary/10"
-                  disabled={isLoading}
+                  disabled={isLoading !== null}
                 >
-                  {isLoading ? (
+                  {isLoading === 'signup' ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
                   Create Account
@@ -375,9 +375,9 @@ export function AuthModal() {
               type="button"
               className="w-full h-11 rounded-xl shadow-sm border-border/60 hover:bg-muted/50 transition-all"
               onClick={handleGoogleSignIn}
-              disabled={isLoading}
+              disabled={isLoading !== null}
             >
-              {isLoading ? (
+              {isLoading === 'google' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <svg
