@@ -77,9 +77,9 @@ graph TD
     Root --> Lib[lib]
     Root --> Prisma[prisma]
 
-    App --> Auth[(auth) - Auth Routes]
-    App --> Main[(main) - Tool Pages]
-    App --> API[api - Auth & Tool API]
+    App --> Auth["(auth) - Auth Routes"]
+    App --> Main["(main) - Tool Pages"]
+    App --> API["api - Auth & Tool API"]
 
     Components --> AuthComp[auth-modal.tsx]
     Components --> EmailComp[emails/auth-email-template.tsx]
