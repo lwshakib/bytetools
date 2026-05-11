@@ -20,7 +20,9 @@ import { useAuthModal } from '@/hooks/use-auth-modal';
 
 export function AuthModal() {
   const { isOpen, view, onClose, setView } = useAuthModal();
-  const [isLoading, setIsLoading] = useState<'signin' | 'signup' | 'forgot-password' | 'google' | null>(null);
+  const [isLoading, setIsLoading] = useState<
+    'signin' | 'signup' | 'forgot-password' | 'google' | null
+  >(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -168,7 +170,11 @@ export function AuthModal() {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading !== null}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading !== null}
+            >
               {isLoading === 'forgot-password' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}

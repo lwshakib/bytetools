@@ -51,13 +51,6 @@ export function AccountView() {
   >([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
 
-  useEffect(() => {
-    if (session?.user) {
-      setName(session.user.name || '');
-      fetchSessions();
-    }
-  }, [session]);
-
   const fetchSessions = async () => {
     try {
       const { data } = await authClient.listSessions();
@@ -68,6 +61,13 @@ export function AccountView() {
       setIsLoadingSessions(false);
     }
   };
+
+  useEffect(() => {
+    if (session?.user) {
+      setName(session.user.name || '');
+      fetchSessions();
+    }
+  }, [session]);
 
   const handleUpdateName = async () => {
     setIsUpdating(true);

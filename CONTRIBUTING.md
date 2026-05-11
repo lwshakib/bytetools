@@ -68,6 +68,7 @@ Here are the step-by-step instructions to get your development environment set u
 
 2. **Clone your Fork**
    Clone the repository to your local machine:
+
    ```bash
    git clone https://github.com/<your-username>/bytetools.git
    cd bytetools
@@ -75,12 +76,14 @@ Here are the step-by-step instructions to get your development environment set u
 
 3. **Set up Upstream Remote**
    Add the main repository as an upstream remote so you can pull the latest changes:
+
    ```bash
    git remote add upstream https://github.com/lwshakib/bytetools.git
    ```
 
 4. **Keep your Fork in Sync**
    Before starting any work, ensure your local `main` branch is up to date with the original repository:
+
    ```bash
    git checkout main
    git fetch upstream
@@ -89,21 +92,26 @@ Here are the step-by-step instructions to get your development environment set u
 
 5. **Create a Branch**
    Always create a new branch for your changes:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
-   *Tip: Use descriptive names like `feature/add-login` or `fix/header-bug`.*
+
+   _Tip: Use descriptive names like `feature/add-login` or `fix/header-bug`._
 
 6. **Make Changes and Commit**
    Make your changes locally. When you are ready to commit:
+
    ```bash
    git add .
    git commit -m "feat: your descriptive commit message"
    ```
-   *Please follow our [Git Commit Messages](#git-commit-messages) guidelines.*
+
+   _Please follow our [Git Commit Messages](#git-commit-messages) guidelines._
 
 7. **Push to your Fork**
    Push your new branch to your forked repository:
+
    ```bash
    git push -u origin feature/your-feature-name
    ```

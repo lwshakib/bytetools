@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: 'postgresql://user:password@localhost:5432/db'
+      BETTER_AUTH_SECRET: 'placeholder-secret-for-ci'
+      NEXT_PUBLIC_BASE_URL: 'http://localhost:3000'
+      BETTER_AUTH_URL: 'http://localhost:3000'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Prisma Generate
+        run: pnpm prisma generate
+
+      - name: Run Lint
+        run: pnpm lint
+
+      - name: Check Formatting
+        run: pnpm format:check
+
+      - name: Type Check
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
