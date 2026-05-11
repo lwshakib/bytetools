@@ -12,7 +12,6 @@ import { AuthEmailTemplate } from '@/components/emails/auth-email-template'; // 
 // Use a placeholder if the key is missing to prevent build-time crashes during static analysis.
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789');
 
-
 // Create and export the configured authentication service instance.
 export const auth = betterAuth({
   // Use Prisma as the database adapter to persist user accounts, sessions, and social connections directly into our PostgreSQL database.
