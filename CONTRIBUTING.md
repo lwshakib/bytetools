@@ -30,7 +30,7 @@ If you then still feel the need to ask a question and need clarification, we rec
 
 - Open an [Issue](https://github.com/lwshakib/bytetools/issues/new).
 - Provide as much context as you can about what you're running into.
-- Provide project and platform versions (nodejs, npm, etc), depending on what seems relevant.
+- Provide project and platform versions (nodejs, pnpm, etc), depending on what seems relevant.
 
 ## I Want To Contribute
 
@@ -130,9 +130,16 @@ The process described here has several goals:
 
 Please follow these steps to have your contribution considered by the maintainers:
 
-1. Follow all instructions in [the template](.github/PULL_REQUEST_TEMPLATE.md) (if available).
-2. Follow the [styleguides](#styleguides).
-3. After you submit your pull request, verify that all status checks are passing.
+1. Follow all instructions in [the template](.github/pull_request_template.md).
+2. Ensure all quality checks pass locally:
+   ```bash
+   pnpm lint
+   pnpm format:check
+   pnpm typecheck
+   pnpm build
+   ```
+3. Follow the [styleguides](#styleguides).
+4. After you submit your pull request, verify that all status checks are passing in GitHub Actions.
 
 ## Styleguides
 

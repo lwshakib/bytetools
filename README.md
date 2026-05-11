@@ -25,7 +25,7 @@ Welcome to **Bytetools**! A modern, premium utility suite built with [Next.js](h
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (latest LTS)
-- [Bun](https://bun.sh/)
+- [pnpm](https://pnpm.io/)
 - [PostgreSQL](https://www.postgresql.org/) (Local or via NeonDB)
 
 ### Installation
@@ -40,7 +40,7 @@ Welcome to **Bytetools**! A modern, premium utility suite built with [Next.js](h
 2.  **Install dependencies:**
 
     ```bash
-    bun install
+    pnpm install
     ```
 
 3.  **Environment Setup:**
@@ -48,13 +48,22 @@ Welcome to **Bytetools**! A modern, premium utility suite built with [Next.js](h
 
 4.  **Database Migration:**
     ```bash
-    bun run db:migrate
+    pnpm run db:migrate
     ```
 
 ### Running Locally
 
 ```bash
-bun dev
+pnpm dev
+```
+
+### Quality Assurance
+
+Before pushing changes, ensure all quality checks pass:
+
+```bash
+# Run all checks
+pnpm lint && pnpm format:check && pnpm typecheck && pnpm build
 ```
 
 ## 🛠️ Tech Stack
