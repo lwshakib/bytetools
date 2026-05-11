@@ -2,8 +2,10 @@
 
 Welcome to **Bytetools**! A modern, premium utility suite built with [Next.js](https://nextjs.org), designed to provide essential, privacy-focused tools for developers and power users.
 
-![Dark Mode Demo](public/app_demo/dark-demo.png)
-![Light Mode Demo](public/app_demo/light_demo.png)
+<div style="display: flex; gap: 10px; justify-content: center;">
+  <img src="public/app_demo/dark-demo.png" alt="Dark Mode Demo" width="49%" />
+  <img src="public/app_demo/light_demo.png" alt="Light Mode Demo" width="49%" />
+</div>
 
 ## ✨ Key Features
 
