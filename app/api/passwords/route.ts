@@ -76,6 +76,10 @@ export async function POST(req: Request) {
     );
   }
 
+  if (name && name.length > 100) {
+    return NextResponse.json({ error: 'Name is too long' }, { status: 400 });
+  }
+
   // IMPORTANT: Symmetrically Encrypt the raw string password value
   // We explicitly run this node-side operation to completely blind the resulting PostgreSQL storage state.
   const encryptedValue = encrypt(value);
@@ -95,10 +99,6 @@ export async function POST(req: Request) {
   });
 }
 
-/**
- * DELETE Handler
- * Safely removes a targeted password entry entirely from the vault.
- */
 export async function DELETE(req: Request) {
   // Always lock behind session evaluation first
   const session = await auth.api.getSession({
@@ -112,15 +112,29 @@ export async function DELETE(req: Request) {
   // Consume target ID mapping straight from body context
   const { id } = await req.json();
 
+  if (!id) {
+    return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+  }
+
   // Run native Prisma query ensuring two layers of validation occurs matching:
   // 1. Target ID matching targeted object.
   // 2. Ensuring the Owner UUID perfectly aligns with the active request UUID (Preventing arbitrary deletions)
-  await prisma.savedPassword.delete({
-    where: {
-      id,
-      userId: session.user.id,
-    },
-  });
+  try {
+    await prisma.savedPassword.delete({
+      where: {
+        id,
+        userId: session.user.id,
+      },
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error && 'code' in error && error.code === 'P2025') {
+      return NextResponse.json(
+        { error: 'Password record not found' },
+        { status: 404 }
+      );
+    }
+    throw error;
+  }
 
   return NextResponse.json({ success: true });
 }
