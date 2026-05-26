@@ -51,6 +51,11 @@ export async function POST(req: Request) {
   }
 
   // Create the record directly linking it back to the active user's session ID
+  if (name && name.length > 100) {
+    return NextResponse.json({ error: 'Name is too long' }, { status: 400 });
+  }
+
+  // Create the record directly linking it back to the active user's session ID
   const savedJwt = await prisma.savedJwt.create({
     data: {
       userId: session.user.id,
@@ -82,14 +87,29 @@ export async function DELETE(req: Request) {
   // Retrieve the target ID expected mapped on the request body
   const { id } = await req.json();
 
+  if (!id) {
+    return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+  }
+
   // Issue the destructive delete query ensuring the item matches BOTH the passed ID and the active session User ID
   // Validating userId on this end is critical for preventing Insecure Direct Object Reference (IDOR) attacks.
-  await prisma.savedJwt.delete({
-    where: {
-      id,
-      userId: session.user.id,
-    },
-  });
+  try {
+    await prisma.savedJwt.delete({
+      where: {
+        id,
+        userId: session.user.id,
+      },
+    });
+  } catch (error: unknown) {
+    const err = error as { code?: string };
+    if (err.code === 'P2025') {
+      return NextResponse.json(
+        { error: 'JWT record not found' },
+        { status: 404 }
+      );
+    }
+    throw error;
+  }
 
   // Simply return success since the frontend is likely actively deleting the element locally
   return NextResponse.json({ success: true });
