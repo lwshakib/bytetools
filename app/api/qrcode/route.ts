@@ -52,6 +52,11 @@ export async function POST(req: Request) {
   }
 
   // Safely commit new entity, assigning it an owner ID and parsing default UI aesthetic fallbacks
+  if (name && name.length > 100) {
+    return NextResponse.json({ error: 'Name is too long' }, { status: 400 });
+  }
+
+  // Safely commit new entity, assigning it an owner ID and parsing default UI aesthetic fallbacks
   const savedQr = await prisma.savedQrCode.create({
     data: {
       userId: session.user.id,
@@ -82,14 +87,26 @@ export async function DELETE(req: Request) {
   // Retrieve the target ID mapped on the request body
   const { id } = await req.json();
 
+  if (!id) {
+    return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+  }
+
   // Run native Prisma query ensuring the item matches BOTH the passed ID and the active session User ID
   // Validating userId on this end is critical to prevent IDOR attacks.
-  await prisma.savedQrCode.delete({
-    where: {
-      id,
-      userId: session.user.id,
-    },
-  });
+  try {
+    await prisma.savedQrCode.delete({
+      where: {
+        id,
+        userId: session.user.id,
+      },
+    });
+  } catch (error: unknown) {
+    const err = error as { code?: string };
+    if (err.code === 'P2025') {
+      return NextResponse.json({ error: 'QR code not found' }, { status: 404 });
+    }
+    throw error;
+  }
 
   return NextResponse.json({ success: true });
 }
