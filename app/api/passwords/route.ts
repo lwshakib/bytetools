@@ -93,10 +93,8 @@ export async function POST(req: Request) {
     },
   });
 
-  return NextResponse.json({
-    ...savedPassword,
-    value, // We return the original plain text value back to the payload instantly for the local UI hydration loop to display smoothly.
-  });
+  // Return the saved record without exposing the plain-text password string in the API response.
+  return NextResponse.json(savedPassword);
 }
 
 export async function DELETE(req: Request) {
