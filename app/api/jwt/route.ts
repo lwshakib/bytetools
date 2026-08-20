@@ -6,9 +6,10 @@ import { auth } from '@/lib/auth'; // Core auth utility to perform server-side s
 import prisma from '@/lib/prisma'; // Database ORM instance
 import { NextResponse } from 'next/server'; // Next.js specific API router response helper
 import { headers } from 'next/headers'; // Method to dynamically inspect the active request's headers
+import { encrypt, decrypt } from '@/lib/encryption'; // Symmetrical AES-256-GCM encryption/decryption utilities
 
 /**
- * Retrieves all saved JWTs for the authenticated user.
+ * Retrieves all saved JWTs for the authenticated user and decrypts their token and secret fields.
  */
 export async function GET() {
   const session = await auth.api.getSession({
@@ -24,12 +25,38 @@ export async function GET() {
     orderBy: { createdAt: 'desc' },
   });
 
-  return NextResponse.json(jwts);
+  // Decrypt tokens and secrets in-memory before returning them to the authenticated client
+  const decryptedJwts = jwts.map((item) => {
+    let token = item.token;
+    let secret = item.secret;
+
+    try {
+      token = decrypt(item.token);
+    } catch {
+      token = '[REDACTED - CORRUPTED]';
+    }
+
+    if (item.secret) {
+      try {
+        secret = decrypt(item.secret);
+      } catch {
+        secret = '[REDACTED - CORRUPTED]';
+      }
+    }
+
+    return {
+      ...item,
+      token,
+      secret,
+    };
+  });
+
+  return NextResponse.json(decryptedJwts);
 }
 
 /**
  * POST Handler
- * Validates, authenticates, and saves a new JWT record into the database.
+ * Validates, encrypts sensitive token/secret fields, and saves a new JWT record into the database.
  */
 export async function POST(req: Request) {
   // Validate request securely against Better-Auth using the incoming request headers
@@ -50,17 +77,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Token is required' }, { status: 400 });
   }
 
+  // Encrypt the sensitive token string and secret key before writing to the database
+  const encryptedToken = encrypt(token);
+  const encryptedSecret = secret ? encrypt(secret) : null;
+
   // Create the record directly linking it back to the active user's session ID
   const savedJwt = await prisma.savedJwt.create({
     data: {
       userId: session.user.id,
       name: name || 'Saved JWT', // Provide a fallback name if one wasn't attached
-      token,
-      secret,
+      token: encryptedToken,
+      secret: encryptedSecret,
     },
   });
 
-  // Return the populated Database object (with newly minted Primary Key ID) to populate the frontend state
+  // Return the populated Database object to populate the frontend state
   return NextResponse.json(savedJwt);
 }
 
