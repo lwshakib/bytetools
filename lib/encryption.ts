@@ -13,10 +13,33 @@ const TAG_LENGTH = 16; // Length of the authentication tag used by GCM mode.
 const KEY_LENGTH = 32; // Standard 256-bit (32 byte) key length for AES-256.
 const ITERATIONS = 100000; // Number of iteration for PBKDF2 (higher means more secure against brute-force attacks).
 
+const MIN_SECRET_LENGTH = 32;
+
+/**
+ * Validates and retrieves the master secret from environment variables.
+ * Throws a fatal error on startup if BETTER_AUTH_SECRET is missing or does not meet minimum security requirements.
+ */
+function getMasterSecret(): string {
+  const secret = process.env.BETTER_AUTH_SECRET;
+
+  if (!secret) {
+    throw new Error(
+      'FATAL: BETTER_AUTH_SECRET environment variable is missing. Application cannot start in an insecure state without an encryption secret.'
+    );
+  }
+
+  if (secret.length < MIN_SECRET_LENGTH) {
+    throw new Error(
+      `FATAL: BETTER_AUTH_SECRET must be at least ${MIN_SECRET_LENGTH} characters long to ensure cryptographic security.`
+    );
+  }
+
+  return secret;
+}
+
 // The master secret used as the base for key derivation.
-// Should securely be read from environment variables to prevent hardcoding sensitive secrets.
-const MASTER_SECRET =
-  process.env.BETTER_AUTH_SECRET || 'architect-vault-genesis-secret-key-32ch';
+// Validated at startup to prevent running without a secure secret key.
+const MASTER_SECRET = getMasterSecret();
 
 /**
  * Encrypts a plain text string into a secure base64 format.
